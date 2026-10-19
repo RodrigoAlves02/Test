@@ -1,0 +1,126 @@
+PLAN: BUILDING THE GUIDANCE PINN
+MSc thesis - PINN-based closed-loop guidance for powered descent to 433 Eros
+Recorded 2026-09-16
+
+Step by step, in order. Each block consumes the output of the one before it, so
+the blocks are done in sequence and not in parallel: the dispersion that comes
+out of one is the initial condition of the next.
+
+
+================================================================================
+1. LANDING SITE
+================================================================================
+
+STATUS: DECIDED.
+
+  - The site in the pond area, the one already in use.
+
+No further work in this block. It is listed because everything downstream is
+defined relative to it, and because the multi-site work in block 5 has to come
+back and relax this.
+
+
+================================================================================
+2. PARKING ORBIT
+================================================================================
+
+GOAL
+  Select and fully justify the parking orbit, and establish the orbit
+  determination error there, so that the state at the start of the braking
+  manoeuvre is dispersed realistically rather than assumed.
+
+STEPS
+  - Select the parking orbit. Justify it from literature or from theory, not by
+    assertion. The justification has to cover why this orbit and not the
+    alternatives.
+  - Establish the OD error achievable in that orbit. This replaces any assumed
+    constant with something defensible.
+  - Propagate that OD error to the epoch where the braking manoeuvre starts.
+
+OUTPUT
+  A well justified CLOUD OF POINTS from which the braking manoeuvre can begin.
+  This cloud, not a single nominal point, is what the next block takes as input.
+
+ALSO IN THIS BLOCK
+  - Attempt LCA (linear covariance analysis) here, alongside the Monte Carlo, if
+    it can be made to work.
+
+
+================================================================================
+3. BRAKING MANOEUVRE + TCM
+================================================================================
+
+GOAL
+  Deliver a realistic dispersion for the descent initial condition, produced by
+  a manoeuvre sequence that is designed the way a real one would be.
+
+STEPS
+  - Explain how the BURN TIME and BURN DIRECTION are obtained for the open-loop
+    propagation. This is the nominal design.
+  - Explain WHEN and WHERE the correction is applied, and WHY that epoch and
+    that location. The choice has to be argued, not inherited.
+  - Run an OD filter through the coast, so the correction is computed from an
+    ESTIMATE of the state at the correction epoch, the way it would be on
+    board - not from the true state.
+  - Apply the correction, then propagate the TRUTH DYNAMICS to see where the
+    spacecraft actually arrives.
+  - Monte Carlo the whole sequence to get the dispersion of the descent initial
+    condition.
+  - Include THRUST MAGNITUDE and POINTING errors on both burns. Everything in
+    this block is to be as realistic as it can be made.
+
+OUTPUT
+  The dispersed initial condition for the descent: the cloud of states at
+  handover, with its covariance.
+
+ALSO IN THIS BLOCK
+  - Attempt LCA here as well, alongside the Monte Carlo, if it can be made to
+    work.
+
+
+================================================================================
+4. SCvx BLOCK
+================================================================================
+
+STATUS: essentially fully implemented already. This block is tuning and
+generation, not new development.
+
+STEPS
+  - Re-tune SCvx for the REAL dispersion and the REAL initial conditions coming
+    out of block 3. The sampling envelope and the initial-condition
+    distribution follow from the measured handover dispersion, not from a
+    guess.
+  - Generate the training data for the PINN on that basis.
+
+OUTPUT
+  The dataset the PINN trains on, matched to the dispersion the vehicle will
+  actually see.
+
+
+================================================================================
+5. PINN BLOCK
+================================================================================
+
+GOAL
+  Get the guidance network working, then generalise it across sites.
+
+STEPS
+  - Test the current architecture across many configurations: loss function,
+    network size, data, and whatever else is worth varying.
+  - If it works, and the results hold up in the FULL SIMULATION and not only in
+    open loop, move to multi-site:
+      - train a single PINN on at least two sites,
+      - and if that works, keep increasing the number of sites.
+
+OUTPUT
+  The guidance PINN, and a statement of how far it generalises across sites.
+
+
+================================================================================
+6. ADDITIONAL, IF TIME ALLOWS (PROBABLY NOT)
+================================================================================
+
+Listed so the scope boundary is explicit. Not planned work.
+
+  - Different PINN architectures: HJB, costate-based.
+  - Different sensor configurations, beyond the one selected in the EKF block.

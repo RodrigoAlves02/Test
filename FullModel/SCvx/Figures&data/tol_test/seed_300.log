@@ -1,0 +1,4 @@
+seed   300 tight    converged   converged    it    8 fuel 5.61630 tf  1987.85 [541s]
+seed   300 mid      converged   converged    it    9 fuel 5.61771 tf  1982.43 [479s]
+seed   300 default  converged   converged    it    7 fuel 5.62507 tf  1994.18 [281s]
+wrote Figures&data/tol_test/seed_300.json

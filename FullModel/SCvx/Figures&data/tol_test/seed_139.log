@@ -1,0 +1,4 @@
+seed   139 tight    infeasible  infeasible   it  400 fuel 4.20009 tf  1927.68 [3722s]
+seed   139 mid      infeasible  infeasible   it  400 fuel 11.25292 tf  1875.48 [2742s]
+seed   139 default  infeasible  infeasible   it  400 fuel 8.17736 tf  1854.95 [4063s]
+wrote Figures&data/tol_test/seed_139.json

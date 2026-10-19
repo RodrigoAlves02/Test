@@ -1,0 +1,5 @@
+run_id dt_float64-84fc154cc4-e4ee1a26   device cpu   out /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/dt_float64-84fc154cc4-e4ee1a26
+parents 40  train 32 val 8 test 0
+pairs  train 158,400   val 39,600
+default dtype float64
+ansatz carries a nominal reference trajectory (C2 spline, mean training parent)

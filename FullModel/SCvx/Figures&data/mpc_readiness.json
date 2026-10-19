@@ -1,0 +1,176 @@
+[
+ {
+  "kind": "mpc",
+  "frac": 0.0,
+  "K": 30,
+  "wall": 74.63432212499902,
+  "it1": 5,
+  "it2": 35,
+  "status": "maxiter",
+  "fuel": 5.616983734817495,
+  "tgo": 2067.977787202474
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.25,
+  "K": 30,
+  "wall": 151.77272949996404,
+  "it1": 35,
+  "it2": 31,
+  "status": "converged",
+  "fuel": 4.306258989577373,
+  "tgo": 1550.9833404018552
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.5,
+  "K": 30,
+  "wall": 28.561041250126436,
+  "it1": 5,
+  "it2": 7,
+  "status": "converged",
+  "fuel": 3.089960815229574,
+  "tgo": 1033.988893601237
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.75,
+  "K": 30,
+  "wall": 28.726331166923046,
+  "it1": 3,
+  "it2": 9,
+  "status": "converged",
+  "fuel": 1.9575241254175353,
+  "tgo": 516.9944468006184
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.9,
+  "K": 30,
+  "wall": 19.21549837407656,
+  "it1": 3,
+  "it2": 5,
+  "status": "converged",
+  "fuel": 1.231121646060501,
+  "tgo": 206.7977787202473
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.0,
+  "K": 60,
+  "wall": 43.95295945892576,
+  "it1": 3,
+  "it2": 6,
+  "status": "converged",
+  "fuel": 5.564219383312434,
+  "tgo": 2067.977787202474
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.25,
+  "K": 60,
+  "wall": 296.6686053329613,
+  "it1": 35,
+  "it2": 25,
+  "status": "converged",
+  "fuel": 4.273834228919895,
+  "tgo": 1550.9833404018552
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.5,
+  "K": 60,
+  "wall": 44.64656758203637,
+  "it1": 4,
+  "it2": 5,
+  "status": "converged",
+  "fuel": 3.0728390072438287,
+  "tgo": 1033.988893601237
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.75,
+  "K": 60,
+  "wall": 39.80296404089313,
+  "it1": 3,
+  "it2": 5,
+  "status": "converged",
+  "fuel": 1.9509029537414335,
+  "tgo": 516.9944468006184
+ },
+ {
+  "kind": "mpc",
+  "frac": 0.9,
+  "K": 60,
+  "wall": 117.33674499997869,
+  "it1": 3,
+  "it2": 20,
+  "status": "converged",
+  "fuel": 1.2283662632104324,
+  "tgo": 206.7977787202473
+ },
+ {
+  "kind": "cone",
+  "frac": 0.5,
+  "angle": 28.82863647888348,
+  "stage1": "converged",
+  "stage2": "converged",
+  "fuel": 3.072877917974097
+ },
+ {
+  "kind": "cone",
+  "frac": 0.5,
+  "angle": 16.10211375198601,
+  "stage1": "converged",
+  "stage2": "converged",
+  "fuel": 3.16174137884434
+ },
+ {
+  "kind": "cone",
+  "frac": 0.5,
+  "angle": 30.49371514890689,
+  "stage1": "converged",
+  "stage2": "converged",
+  "fuel": 3.701090478306128
+ },
+ {
+  "kind": "cone",
+  "frac": 0.5,
+  "angle": 33.58228395474638,
+  "stage1": "converged",
+  "stage2": "converged",
+  "fuel": 3.6994579096078724
+ },
+ {
+  "kind": "cone",
+  "frac": 0.8,
+  "angle": 29.570677444047632,
+  "stage1": "converged",
+  "stage2": "converged",
+  "fuel": 1.7074437592660843
+ },
+ {
+  "kind": "cone",
+  "frac": 0.8,
+  "angle": 16.102113751986014,
+  "stage1": "converged",
+  "stage2": "converged",
+  "fuel": 1.8564486330433283
+ },
+ {
+  "kind": "cone",
+  "frac": 0.8,
+  "angle": 30.49371514890689,
+  "stage1": "converged",
+  "stage2": "converged",
+  "fuel": 1.70516956616882
+ },
+ {
+  "kind": "cone",
+  "frac": 0.8,
+  "angle": 33.58228395474637,
+  "stage1": "converged",
+  "stage2": "converged",
+  "fuel": 1.7068991578092891
+ }
+]

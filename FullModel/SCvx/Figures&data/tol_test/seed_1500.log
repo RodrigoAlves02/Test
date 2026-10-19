@@ -1,0 +1,4 @@
+seed  1500 tight    infeasible  infeasible   it  400 fuel 5.70186 tf  1926.52 [3686s]
+seed  1500 mid      infeasible  infeasible   it  400 fuel 5.70186 tf  1926.52 [2750s]
+seed  1500 default  infeasible  infeasible   it  400 fuel 6.17750 tf  2088.72 [4017s]
+wrote Figures&data/tol_test/seed_1500.json

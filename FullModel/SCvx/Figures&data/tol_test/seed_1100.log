@@ -1,0 +1,4 @@
+seed  1100 tight    converged   converged    it    5 fuel 5.12518 tf  1908.75 [313s]
+seed  1100 mid      converged   converged    it    6 fuel 5.12350 tf  1914.55 [338s]
+seed  1100 default  converged   converged    it    5 fuel 5.12713 tf  1899.04 [285s]
+wrote Figures&data/tol_test/seed_1100.json

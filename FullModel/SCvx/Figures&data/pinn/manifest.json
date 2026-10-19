@@ -1,0 +1,58 @@
+{
+ "created": "2026-10-14T12:21:49",
+ "code_sha1": "41dd197a26aa",
+ "K": 100,
+ "dispersion": {
+  "pos_sigma_m": 1000.0,
+  "vel_sigma_ms": 1.0,
+  "mass_sigma_kg": 2.0,
+  "point_sigma_deg": 3.0
+ },
+ "constraints": {
+  "point_deg": 180.0,
+  "point_deg_note": "DISABLED",
+  "glideslope_deg": 30.0,
+  "terminal_point_deg": 1.0,
+  "terminal_point_nodes": 1,
+  "slew_max_deg_s": 2.0,
+  "vtouch": 0.3,
+  "tmin": 5.0,
+  "tmax": 20.0,
+  "align": {
+   "align_theta0_deg": 45.0,
+   "align_h_m": 100.0
+  }
+ },
+ "solver": {
+  "tol": {
+   "iters": 200,
+   "tol_obj": 1e-07,
+   "tol_defect_m": 0.001,
+   "tol_defect_v": 0.0001,
+   "tol_vc_m": 0.0001
+  },
+  "chain": "free s1 -> pinned s1 (D) -> free s2 -> pinned s2 (seeded)",
+  "plan_gravity": "pinn-gm-iii",
+  "handover": "attitude pinned by d_init, throttle free"
+ },
+ "gates": {
+  "d_max_m": 0.001,
+  "dnorm": [
+   0.999,
+   1.001
+  ],
+  "d0_err_deg": 0.001
+ },
+ "nominal": {
+  "tf_s": 2041.4021548498595,
+  "fuel_kg": 5.525753205286605,
+  "d0": [
+   -0.7318817308716508,
+   -0.13299350163775786,
+   0.6682475097111138
+  ],
+  "T0_N": 13.217657071429947,
+  "status": "converged",
+  "iters": 72
+ }
+}

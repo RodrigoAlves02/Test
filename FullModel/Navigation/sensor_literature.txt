@@ -1,0 +1,500 @@
+================================================================================
+NAVIGATION SENSOR PARAMETERS FROM FLOWN-MISSION LITERATURE
+Eros powered-descent GNC -- source survey for the navigation block
+Compiled 2026-09-27
+================================================================================
+
+PURPOSE
+  Every sensor parameter currently in FullModel/Navigation/config_nav.py was
+  invented.  This file replaces each one with a value traceable to a flown
+  instrument datasheet or a peer-reviewed / NASA-published paper, and states
+  explicitly which numbers are QUOTED, which are DERIVED by me from quoted
+  numbers, and which I could NOT verify.
+
+LEGEND
+  [Q] quoted verbatim from a document I opened and read
+  [D] derived by arithmetic from [Q] values -- the derivation is shown
+  [S] search-snippet level only: I could not open the source document
+  [X] not found anywhere public
+
+REFERENCE MISSION PROFILE (for scaling the numbers below)
+  handover altitude      11 771 m
+  time of flight          2 052 s
+  wet / dry mass        600 / 490 kg
+  thrust                5 -- 20 N   -> accel 0.00833 -- 0.0333 m/s^2
+  Eros surface gravity  ~0.0055 m/s^2
+  guidance cycle           60 s ; actuator sub-step 0.5 s
+
+
+================================================================================
+1.  IMU  --  NORTHROP GRUMMAN LN-200S
+================================================================================
+
+SOURCE
+  "LN-200S & LN-200HPS Inertial Measurement Unit (IMU)" datasheet,
+  Northrop Grumman, doc CS-23015,
+  Approved for Public Release; Distribution Unlimited; #23-1041; 07/11/23.
+  https://cdn.northropgrumman.com/-/media/Project/Northrop-Grumman/ngc/
+    what-we-do/mission-solutions/assured-navigation/ln-200s-ln-200hps-imu/
+    LN-200S-LN-200HPS-inertial-measurement-unit-imu-datasheet.pdf
+
+  NOTE ON EXTRACTION: this PDF is CID-encoded (subset FuturaMaxiStd fonts, no
+  plain text layer).  pypdf / pdftotext / poppler are all unavailable or return
+  zero characters.  I decoded it by parsing the PDF objects, decompressing the
+  content streams and rebuilding the ToUnicode CMaps by hand.  The extractor is
+  saved at  scratchpad/pdftxt.py  and can be re-run to re-verify every number
+  below.  Nothing here is from a secondary source.
+
+WHY THIS UNIT  (this is the defensible part, not just the numbers)
+  The datasheet's own heritage list, quoted verbatim, includes:
+      Deep Space I, TSX-5, MightySat II, Muses-C, Coriolis, Terra SAR-X,
+      Kepler Space Telescope, WISE Space Telescope, Ladee, Planet-C,
+      Clementine, Hayabusa2, Mars Rover (Spirit, Opportunity, Curiosity,
+      and now Perseverance)
+  Muses-C is Hayabusa 1.  So the LN-200S is the flown IMU on BOTH Japanese
+  asteroid sample-return missions.  The datasheet also states:
+      [Q] "The unit is hermetically sealed, which is advantageous for
+           planetary and asteroid probes."
+      [Q] "The LN-200S has the lowest gyro and accelerometer white noise in
+           the medium accuracy IMU class."
+  The alternative anchor -- the Honeywell MIMU flown on OSIRIS-REx -- is a dead
+  end: [X] the datasheet PDF is image-only (pypdf extracts 0 chars) and
+  SatCatalog lists only dry mass 4.08 kg and average power 34.0 W.  No
+  sensor-level specs for the MIMU exist in public literature.
+
+ACCELEROMETER  (all 1-sigma, LN-200S column)
+  [Q] Bias Repeatability      300 ug, 1 sigma
+  [Q] Noise                    35 ug/sqrt(Hz)
+  [Q] Scale Factor Accuracy   300 ppm, 1 sigma
+  [Q] Input Axis Alignment      0.1 mrad
+  [Q] Max Input Accel          40 g
+
+GYRO  (not used by our filter today, recorded for completeness)
+  [Q] Bias Repeatability        1 deg/hr, 1 sigma
+  [Q] Scale Factor Stability  100 ppm
+  [Q] Angle Random Walk        <0.07 deg/sqrt(hr)
+  [Q] Input Axis Alignment      0.1 mrad
+  [Q] Dynamic Range (max)    1000 deg/sec
+
+UNIT CHARACTERISTICS
+  [Q] Bandwidth      200 Hz @ 400 Hz data rate
+  [Q] Power          12 W nominal, regulated at +/-5 Vdc and +/-15 Vdc
+  [Q] Dimensions     diameter 3.5 in (8.89 cm), height 3.35 in (8.51 cm)
+  [Q] Weight         1.65 lb (748 g)
+  [Q] Volume         35 in^3
+  [Q] Temp range     -54 C to +71 C  (survival -62 C to +85 C)
+  [Q] Interface      RS-422/485 serial
+  [Q] Enclosure      hermetically sealed
+  [Q] Shock          400 g/100 Hz ; 1500 g/1000 Hz
+  [Q] Vibration      15 g rms random (survival)
+
+LN-200HPS COLUMN  (same form factor, better gyro + more radiation tolerance)
+  [Q] Accel bias repeatability   300 ug, 1 sigma
+  [Q] Accel scale factor          100 ppm, 1 sigma
+  [Q] Gyro bias repeatability      0.15 deg/hr, 1 sigma
+  [Q] Gyro scale factor            50 ppm, 1 sigma
+  [Q] Gyro random walk (max)        0.01 deg/sqrt(hr)
+  Note the HPS buys NOTHING on the accelerometer bias -- still 300 ug.  For a
+  translational-only filter there is no reason to prefer it.
+
+--------------------------------------------------------------------------------
+UNIT CONVERSION AND CONSEQUENCES   (g0 = 9.80665 m/s^2)
+--------------------------------------------------------------------------------
+  [D] bias  300 ug   = 300e-6 * 9.80665        = 2.9420e-03 m/s^2
+  [D] noise  35 ug/sqrt(Hz)                    = 3.4323e-04 (m/s^2)/sqrt(Hz)
+
+  Discrete per-sample sigma for a white-noise PSD N is  sigma_a = N/sqrt(dt):
+  [D]   dt = 1/400 s (datasheet rate)  ->  6.865e-03 m/s^2
+  [D]   dt = 0.5   s (our sub-step)    ->  4.854e-04 m/s^2
+  [D]   dt = 1.0   s                   ->  3.432e-04 m/s^2
+
+  Velocity random walk accumulated over the whole 2052 s flight:
+  [D]   sigma_dv = N*sqrt(T) = 3.4323e-4 * sqrt(2052) = 0.0155 m/s
+        -> NOISE IS IRRELEVANT at our accuracy target.
+
+  Deterministic error terms, evaluated on the true specific force:
+  [D]   scale factor 300 ppm  on 0.0333 m/s^2  ->  1.00e-05 m/s^2
+  [D]   misalignment 0.1 mrad on 0.0333 m/s^2  ->  3.33e-06 m/s^2
+        -> BOTH NEGLIGIBLE.  They are currently in imu.py and earn nothing;
+           they can stay for realism but they do not drive anything.
+
+  BIAS IS THE ENTIRE ERROR BUDGET:
+  [D]   2.9420e-03 m/s^2  =   8.8 % of full-thrust acceleration (20 N/600 kg)
+  [D]                     =  35.3 % of min-thrust  acceleration ( 5 N/600 kg)
+  [D]                     =    53 % of Eros surface gravity
+  [D]   if left unestimated over 2052 s:
+            velocity error  b*T          =    6.04 m/s
+            position error  0.5*b*T^2    =    6195 m
+        -> This is the quantitative justification for the 3 bias states in the
+           EKF.  It is not a refinement, it is the difference between landing
+           and missing the asteroid.  It is also the reason a 35-minute
+           inertial-only coast is impossible and Hayabusa2/OSIRIS-REx both
+           fly optical + ranging updates.
+
+GAP I CANNOT CLOSE FROM THE DATASHEET
+  [X] In-run bias stability and accelerometer bias random walk / correlation
+      time are NOT on the datasheet.  "Bias repeatability" is a turn-on to
+      turn-on figure.  So:
+        - 300 ug legitimately sets the initial bias draw and the P0 bias block;
+        - the Gauss-Markov correlation time tau in ekf.py remains an
+          engineering assumption and must be declared as such in the thesis.
+      Two honest options:
+        (a) model the bias as a random CONSTANT (tau -> infinity).  This is
+            actually the literal reading of "repeatability": one draw per
+            turn-on, fixed for the run.  Cleanest to defend.
+        (b) pick a finite tau, state it is an assumption, and show the landing
+            result is insensitive to it over a plausible range.
+
+
+================================================================================
+2.  CAMERAS
+================================================================================
+
+2a.  GEOMETRY -- HAYABUSA2 ONC-W1 / ONC-W2  (wide-angle optical nav cameras)
+
+SOURCE
+  USGS ISIS 9.0.0 application documentation, hyb2onc2isis
+  https://isis.astrogeology.usgs.gov/9.0.0/Application/presentation/Tabbed/
+    hyb2onc2isis/hyb2onc2isis.html
+  which cites Kameda et al. (2017), Space Science Reviews 208:17,
+  "Preflight Calibration Test Results for Optical Navigation Camera Telescope
+   (ONC-T) Onboard the Hayabusa2 Spacecraft", doi 10.1007/s11214-015-0227-y
+
+  [Q] ONC-W1 and ONC-W2: "square 65.24 x 65.24 deg. field of view (FOV)"
+  [Q] ONC-W1 focal length 10.35 mm ; ONC-W2 focal length 10.44 mm
+  [Q] ONC-T: "6.35 x 6.35 deg. FOV", focal length 121.1 mm
+  [S] detector 1024 x 1000 px, 13 um pixel pitch  (attributed to Kameda et al.;
+      Springer refused every fetch, so this one is snippet-level)
+
+  CONSISTENCY CHECK that makes the [S] value safe to use:
+  [D]   65.24 deg at f = 10.35 mm over 1024 px implies a pitch of
+        2*10.35*tan(32.62 deg)/1024 = 12.94 um.
+        Two independent quantities agree with the quoted 13 um to 0.5 %.
+
+  CONSEQUENCE FOR OUR DESIGN
+  [D]   pixel scale = 65.24/1024 = 0.06371 deg/px = 1.1120 mrad/px
+  The current config_nav.py value CAM_FOV_DEG = 45.0 is invented and should
+  become 65.24.  It also matters geometrically: ONC-W1 is body-fixed to the
+  spacecraft BOTTOM panel looking along -z, i.e. exactly the "camera along the
+  thrust axis" in our two-camera layout, so the flown geometry matches the
+  architecture already chosen.
+
+2b.  MEASUREMENT NOISE -- NASA GSFC autoNGC / GIANT
+
+SOURCE
+  Shoemaker et al., "Terrain Relative Navigation in a Lunar Landing Scenario
+  Using autoNGC", AIAA SciTech 2022, NASA NTRS 20210024481
+  https://ntrs.nasa.gov/api/citations/20210024481/downloads/
+    autoNGC_SciTech2022_Shoemaker_final.pdf
+
+  [Q] Section IV: "The TRN measurement rate is set at one surface image per
+      minute, with 3 to 5 landmarks per image, and the measurement noise is
+      set at 0.1 pixels 1-sigma in each image pixel column/row direction."
+
+  [Q] Section V, measured against ray-traced synthetic LRO NAC imagery through
+      their GIANT onboard image processor:
+        correlation score 0.997
+        landmark pixel error (col,row)_err = (0.025, 0.169) pixels
+        "the errors are approximately zero-mean, indicating no significant
+         biases in the current setup"
+        "serves as a useful approximation of the lower-bound on the achievable
+         measurement accuracy"
+
+  [Q] Table 3, NAVCAM definition (their camera, not ours -- recorded so the
+      transfer is explicit): detector 1440(H) x 1080(V) px, pixel size 3.45 um,
+      focal length 5.27 mm, 8 bits/pixel.
+
+  WHY 0.1 px TRANSFERS TO ONC-W1: it is an image-processing figure (correlation
+  of a rendered maplet against the image), independent of the optics.  The
+  optics enter only through the pixel scale, which we take from ONC-W1.
+
+  [Q] Table 2 also gives their filter uncertainty at 15 km altitude with
+      TRN+GPS (3-sigma): radial 1.6 m, in-track 0.8 m, cross-track 0.6 m;
+      velocity 2.5 / 1.0 / 1.0 mm/s.  Lunar + GPS, so not directly ours, but
+      it is the order of magnitude a bearing-based filter reaches.
+
+  CONSEQUENCE FOR OUR DESIGN
+  [D]   0.1 px * 1.1120 mrad/px = 111.2 urad 1-sigma per axis
+  [D]   cross-range position error contributed by one bearing, = h * 111.2urad:
+            11 771 m altitude  ->  1.309 m
+             5 000 m           ->  0.556 m
+             1 000 m           ->  0.111 m
+               100 m           ->  0.011 m
+                10 m           ->  0.0011 m
+  This is the anisotropy that was missing from perception.py.  A bearing is
+  sharp ACROSS the line of sight and blind ALONG it, and it sharpens linearly
+  during descent.  The current "camera returns a position fix" model has none
+  of that structure.
+
+  FLIGHT CORROBORATION
+  OSIRIS-REx Natural Feature Tracking, "Autonomous Navigation Performance Using
+  Natural Feature Tracking during the OSIRIS-REx TAG Sample Collection Event",
+  doi 10.3847/PSJ/ac5183
+  [Q] Section 4.2 / Fig. 24: 1-sigma position uncertainty ~1.2 m at Checkpoint
+  [Q] Abstract: delivered within 1 m of the target, 3.5 cm and 1.4 s from the
+      predicted TAG point
+  [Q] Section 4.1.2: NFT-predicted feature locations within 50 cm
+  [Q] Section 4.1.1: ground sample distance <2 cm/pixel, often <=1 cm/pixel on
+      final approach
+  The 1.2 m flown figure sits right on the 1.31 m the bearing model predicts at
+  our handover altitude, which is the strongest single cross-check in this file.
+
+  Camera hardware, for reference (TAGCAMS NavCam 2 did the NFT imaging):
+  Bos et al. (2018), Space Science Reviews, doi 10.1007/s11214-017-0465-2
+  [Q] NavCam FOV 44 x 32 deg, pixel scale 0.28 mrad/pixel, 2592x1944 CMOS,
+      12-bit.
+  [D] consistency: 44 deg / 2592 px = 0.296 mrad/px vs quoted 0.28 -- agrees.
+
+
+================================================================================
+3.  ALTIMETER -- THREE FLOWN CANDIDATES
+================================================================================
+  The current ALT_SIGMA_M = 0.20 m constant is invented and is not how any
+  flown altimeter behaves.  Real accuracy degrades with range.
+
+3a.  HAYABUSA2 LIDAR
+SOURCE  Mizuno et al. (2017), Space Science Reviews 208:33,
+        "Development of the Laser Altimeter (LIDAR) for Hayabusa2"
+  [Q] measurement range            30 m -- 25 km
+  [Q] range resolution             0.5 m  (300 MHz sampling)
+  [Q] accuracy                     +/-1 m at 30 m ; +/-5.5 m at 25 km
+  [Q] laser                        Nd:YAG 1064 nm, 15 mJ, 7 ns
+  [Q] measurement rate             1 Hz
+  [Q] mass / power                 3.52 kg / 18 W
+  -> the ONLY single instrument that spans our entire 11.77 km descent, but
+     1 Hz and metre-class.
+
+3b.  OSIRIS-REx OLA
+SOURCE  Daly et al. (2017), Space Science Reviews 212:899,
+        "The OSIRIS-REx Laser Altimeter (OLA) Investigation and Instrument",
+        Table 3 (as-built performance, 3 % Lambertian reflector)
+
+                            High Energy      Low Energy
+    Max operational range     9.0 km          1.2 km
+    Min operational range     0.26 km         0.036 km
+    Range accuracy (1 sigma)  < 0.31 m        < 0.06 m
+    Range precision (1 sigma) < 0.026 m       < 0.011 m
+    Laser divergence (1/e)    200 urad        100 urad
+    Pulse energy              0.7 mJ          10 uJ
+    Pulse duration            5 ns            1 ns
+    P(detection)              > 99.99 %       > 99.99 %
+
+  [Q] Table 1 requirements: 3 dB link margin at maximum range
+  [Q] Section 4.3: single-measurement precision 1.1 cm (LELT), 2.6 cm (HELT);
+      range offsets -869 mm (LELT), -1269 mm (HELT); range-intensity
+      correction ~8 cm
+  -> far more accurate than the H2 LIDAR but does NOT reach 11.77 km.
+
+3c.  SENSOR HANDOVER ALTITUDE, AS FLOWN
+SOURCE  JAXA, "Operation status of the asteroid explorer, Hayabusa2",
+        press briefing 8 November 2018 (TD1-R3 operation report)
+        https://www.hayabusa2.jaxa.jp/en/enjoy/material/press/
+          Hayabusa2_Press20181108_ver6_en2.pdf
+  [Q] "Descent at 10 cm/s while using LIDAR"
+  [Q] "Begin LRF altitude control from ~25 m altitude"
+  [Q] "Maintain ~20 m altitude while tracking TM with camera"
+  [Q] "Feedback the measured value from the LRF (Laser Range Finder) to control
+       the spacecraft" ; "Successful control of six degrees of freedom by the
+       LRF"
+  [Q] "Altitude reduced to 12m: accuracy of navigation guidance: 15.4 m"
+      (this is the TM-to-target-centre distance at TD1-R3, i.e. the rehearsal,
+       NOT the final touchdown accuracy)
+  -> the flown architecture is LIDAR high / LRF below ~25 m / camera
+     throughout.  Three sensors, not one.
+  [Q] LRF-S1 measures four points on the surface to obtain the local slope and
+      distance; LRF-S2 samples at 20 Hz.  (snippet-consistent with the above
+      briefing; the full LRF instrument paper was not reachable)
+
+3d.  UNRESOLVED: INCIDENCE-ANGLE DROPOUT
+  [X] No paper I opened states an explicit incidence-angle or slope cutoff for
+      a landing altimeter.
+  DERIVABLE SUBSTITUTE, which I would write in the thesis instead of inventing
+  a threshold:
+  [D] OLA Table 3 performance is specified against a 3 % Lambertian surface and
+      Table 1 requires 3 dB of link margin at maximum range.  Lambertian return
+      scales as cos(i).  3 dB = a factor of 2, so cos(i) = 0.5, i.e.
+            i ~ 60 deg  exhausts the margin AT MAXIMUM RANGE,
+      and the tolerable incidence angle relaxes as the range closes.
+      So a 60 deg dropout at long range, loosening at short range, is traceable
+      to a published link budget rather than invented.
+
+
+================================================================================
+4.  DIRECT VELOCITY MEASUREMENT -- NASA NAVIGATION DOPPLER LIDAR (NDL)
+================================================================================
+  This answers the open question "can we get velocity from lidar + camera?".
+  The answer is yes, and the instrument has flown.
+
+SOURCES
+  (i)  Amzajerdian, Hines, Pierrottet, Barnes, Petway, Carson III,
+       "Navigation Doppler Lidar for autonomous ground, aerial, and space
+       vehicles", NASA NTRS 20200002534
+       https://ntrs.nasa.gov/api/citations/20200002534/downloads/20200002534.pdf
+  (ii) Gragossian, Pierrottet, Estes, Barnes, Amzajerdian, Hines,
+       "Navigation Doppler Lidar Performance at High Speed and Long Range",
+       NASA NTRS 20200003107
+       https://ntrs.nasa.gov/api/citations/20200003107/downloads/20200003107.pdf
+
+  [Q] (i) "The NDL in its current configuration transmits three laser beams at
+       different pointing angles toward the ground to measure range and
+       velocity along each beam using a frequency modulated continuous wave
+       (FMCW) technique.  The three line-of-sight measurements are then
+       combined in order to determine the three components of the vehicle
+       velocity vector and its altitude relative to the ground."
+  [Q] (i) "Operating from over four kilometers altitude, the NDL obtains
+       velocity and range precision measurements reaching 2 cm/sec and 2
+       meters, respectively, dominated by the vehicle motion."
+  [Q] (ii) "each measuring both range and velocity at 20 Hz"
+  [Q] (ii) "The resolutions of LOS velocity and range measurements are
+       0.2 cm/sec and 25 cm."
+  [Q] (ii) "Each beam is expected to reach at least 4000 m in range, depending
+       on atmospheric conditions and ground albedo, and up to 218 m/s in
+       velocity."
+  [Q] (ii) validated on a rocket sled at China Lake SNORT from <1 cm/s to
+       218 m/s at distances greater than 4 km; compared against a video
+       monitoring system and Doppler radar with "excellent agreement".
+  [Q] (i) advantages over radar, verbatim: "the laser-based NDL sensor does not
+       suffer from measurement perturbation from terrain features or signal
+       ambiguity from transmitted side lobes, and is far less susceptible to
+       signal clutter, such as returns from the lander structure or jettisoned
+       vehicle components"
+  [S] flight heritage: flown as a payload on Intuitive Machines IM-1 (landing
+      22 Feb 2024) and "provided valid measurements at ranges that exceeded
+      preflight expectations" (NTRS 20250008015, abstract level only)
+
+  WHY THIS MATTERS TO US
+  Three LOS beams give a DIRECT 3-axis velocity measurement at 20 Hz.  That
+  removes the bias-velocity degeneracy outright instead of hoping a single
+  nadir range channel plus bearings makes the accelerometer bias observable.
+  Note 0.2 cm/s resolution vs the 6.04 m/s of velocity error an unestimated
+  300 ug bias would build up -- three orders of magnitude of authority.
+
+
+================================================================================
+5.  INITIAL STATE (OD HANDOVER) ERROR
+================================================================================
+  Currently OD_POS_SIGMA = 10.0 m, OD_VEL_SIGMA = 0.01 m/s, both chosen by you
+  rather than taken from a paper.  What the literature says:
+
+  [S] Hayabusa2 Ryugu approach, radiometric + optical navigation with
+      stochastic-constrained optimum guidance: relative position uncertainty
+      < 100 m, relative velocity uncertainty < 1 cm/s.
+      -> your 0.01 m/s matches the flown velocity figure EXACTLY; your 10 m is
+         10x tighter than the quoted position figure, but that figure is for
+         the approach phase at tens of km, not after a dedicated braking + TCM.
+  [Q] OSIRIS-REx NFT at Checkpoint (125 m altitude): ~1.2 m 1-sigma position.
+      -> shows metre-class knowledge IS achieved near the surface, by TRN.
+
+  The proper citation for our handover accuracy is:
+      Yamamoto et al. (2020), Earth Planets and Space 72:85,
+      "Dynamic precise orbit determination of Hayabusa2 using laser altimeter
+       (LIDAR) and image tracking data sets", doi 10.1186/s40623-020-01213-2
+  [X] It is gold open access under CC-BY but Springer's bot protection refused
+      every route I tried (direct article, /track/pdf, /counter/pdf,
+      Unpaywall's own link).  MUST BE PULLED VIA THE TU DELFT LIBRARY.
+
+
+================================================================================
+6.  SOURCES I COULD NOT OPEN  (do not cite these from this file)
+================================================================================
+  All returned HTTP 403 or a bot challenge.  The numbers attached to them below
+  are search-snippet level and are recorded only so you know what to go and get.
+
+  - Kikuchi et al. (2020), J. Spacecraft and Rockets 57(5):1033-1060,
+    "Design and Reconstruction of the Hayabusa2 Precision Landing on Ryugu",
+    doi 10.2514/1.A34683
+    [S] landing accuracy 1.04 +/- 0.14 m (TD1) and 0.59 +/- 0.03 m (TD2)
+    [S] target landing site radius 2.8 m; target markers released below 40 m
+        altitude; navigation inputs from ONC-W1 imagery
+  - Ogawa et al. (2020), Astrodynamics, "Design and flight results of GNC
+    systems in Hayabusa2 descent operations"
+  - Terui et al. (2020), Astrodynamics 4:345, "Guidance, navigation, and
+    control of Hayabusa2 touchdown operations", doi 10.1007/s42064-020-0086-5
+    [S] below 50 m altitude: autonomous terrain-relative navigation from LRF
+        measurements and TM tracking; free fall from 8.5 m; touchdown
+        velocity < 0.1 m/s
+  - Yamamoto et al. (2020), Earth Planets and Space (see section 5)
+
+  Also checked and abandoned:
+  - Honeywell MIMU datasheet: image-only PDF, 0 characters extractable. [X]
+  - arXiv 1810.11065 (ONC cruise-phase calibration): custom Type1 encodings
+    with no ToUnicode; my extractor returns garbage. [X]
+  - escies.org Mizuno "LIDAR in HAYABUSA Mission" slides: scanned images. [X]
+
+
+================================================================================
+7.  PROPOSED PARAMETER SET  (replaces config_nav.py -- NOT YET IMPLEMENTED)
+================================================================================
+  name                  value          unit          provenance
+  --------------------------------------------------------------------------
+  IMU_ACC_BIAS_SIGMA    2.9420e-03     m/s^2         LN-200S 300 ug   [Q->D]
+  IMU_ACC_NOISE_PSD     3.4323e-04     (m/s^2)/rtHz  LN-200S 35 ug/rtHz [Q->D]
+  IMU_ACC_SF            300e-6         -             LN-200S            [Q]
+  IMU_ACC_MISALIGN      1.0e-04        rad           LN-200S 0.1 mrad   [Q]
+  IMU_RATE              400            Hz            LN-200S            [Q]
+  IMU_BIAS_TAU          <undecided>    s             NOT IN LITERATURE  [X]
+
+  CAM_FOV_DEG           65.24          deg           Hayabusa2 ONC-W1   [Q]
+  CAM_PIX               1024           px            Hayabusa2 ONC      [S]
+  CAM_FOCAL_MM          10.35          mm            Hayabusa2 ONC-W1   [Q]
+  CAM_BEARING_SIGMA     1.112e-04      rad           0.1 px x scale  [Q->D]
+  CAM_RATE              1/60           Hz            autoNGC 1 img/min  [Q]
+  CAM_LANDMARKS         3 to 5         per image     autoNGC            [Q]
+
+  ALT_MAX_RANGE         25000          m             H2 LIDAR           [Q]
+  ALT_MIN_RANGE         30             m             H2 LIDAR           [Q]
+  ALT_SIGMA_NEAR        1.0            m  @ 30 m     H2 LIDAR           [Q]
+  ALT_SIGMA_FAR         5.5            m  @ 25 km    H2 LIDAR           [Q]
+  ALT_RATE              1              Hz            H2 LIDAR           [Q]
+  ALT_INCIDENCE_MAX     60             deg           OLA 3 dB link    [Q->D]
+
+  optional, if the NDL is adopted:
+  NDL_BEAMS             3              -             NTRS 20200002534   [Q]
+  NDL_MAX_RANGE         4000           m             NTRS 20200003107   [Q]
+  NDL_RATE              20             Hz            NTRS 20200003107   [Q]
+  NDL_VEL_SIGMA         0.02           m/s           NTRS 20200002534   [Q]
+  NDL_RANGE_SIGMA       2.0            m             NTRS 20200002534   [Q]
+    (the tighter 0.002 m/s and 0.25 m are RESOLUTIONS; the 2 cm/s and 2 m are
+     achieved flight PRECISIONS "dominated by the vehicle motion", so they are
+     the honest numbers for a simulation)
+
+  OD_POS_SIGMA          10.0           m             your choice; see sec.5
+  OD_VEL_SIGMA          0.01           m/s           matches H2 <1 cm/s [S]
+
+
+================================================================================
+8.  DECISIONS REQUIRED BEFORE ANY CODE IS WRITTEN
+================================================================================
+  D1  ALTIMETER ARCHITECTURE
+      (a) Hayabusa2 LIDAR alone: covers 30 m -- 25 km, so one instrument spans
+          the whole descent, but 1 Hz and +/-1 to 5.5 m.
+      (b) LIDAR above 4 km + NDL below 4 km: 20 Hz, direct 3-axis velocity,
+          2 cm/s.  Matches the flown pattern of handing over to a short-range
+          sensor (Hayabusa2 does exactly this at ~25 m with the LRF).
+      My recommendation: (b).  It is the difference between arguing that the
+      accelerometer bias is observable and simply measuring the velocity.
+
+  D2  NDL YES / NO.  See D1(b).  If no, the bias observability argument has to
+      be carried entirely by the altimeter's single nadir channel plus camera
+      bearings, and the 490 s blind gap between camera activations stays a
+      real weakness.
+
+  D3  INCIDENCE-ANGLE DROPOUT at 60 deg, derived from the OLA 3 dB link margin
+      as in section 3d -- accept, or model it differently?
+
+  D4  IMU BIAS MODEL: random constant (tau -> infinity, the literal reading of
+      "bias repeatability") or finite tau declared as an assumption?
+
+  D5  FILTER FRAME.  Separate from the literature question but still open: the
+      EKF in ekf.py currently propagates in the ROTATING frame while the IMU
+      and the established frame convention are INERTIAL.  This must be fixed
+      regardless of which sensor set is chosen.
+
+  D6  CAMERA MODEL.  Replace the current "camera returns a position fix" with
+      a bearing measurement to a known landmark (unit vector + 111 urad noise
+      per axis), which is what produces the correct altitude-dependent
+      anisotropy in the covariance.
+
+================================================================================
+END
+================================================================================

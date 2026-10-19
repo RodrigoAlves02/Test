@@ -1,0 +1,19 @@
+handover: altitude 11.771 km, |v| 8.6093 m/s, m 599.53 kg
+per-cycle rescaling: ON   plan gravity: pinn   nav gravity: pinn   truth gravity: poly 49k
+truth integrator: RK8 fixed, INERTIAL frame, dt 0.5 s
+K 40, guidance cycle 60 s, actuator sub-step 0.5 s, tau 1e-09 s, slew 1e+06 deg/s
+
+cycle-0 warm start: nominal descent.npz  K 60, tf 2037.7 s
+cyc   0 | t    60.0 alt  11521.29 |v|  8.2343 m 599.280 | S1  2it converged   D   0.0000 def 2.94e-01 | S2  8it converged   miss   0.0608 def 4.16e-03 | tgo  2059.8 T  9.31/ 9.31 | L  11771.0 T  594.0 s_nd  3.47   10.7s
+/Users/rodrigoalves/Desktop/Thesis/FullModel/SCvx/subproblem.py:279: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  prob.solve(solver=getattr(cp, name), **SOLVER_OPTS[name])
+cyc   1 | t   120.0 alt  11274.64 |v|  7.9689 m 599.027 | S1 10it maxiter     D 169.1400 def 1.98e-03 | S2  2it converged   miss 169.2232 def 1.33e-03 | tgo  1931.6 T  9.31/ 9.31 | L  11558.9 T  588.5 s_nd  3.28   11.1s
+      S1 maxiter after 10 it -- blocking: obj   [obj 15.30x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']
+cyc   2 | t   180.0 alt  10927.73 |v|  7.8134 m 598.774 | S1 10it maxiter     D 413.1540 def 1.12e-03 | S2  4it converged   miss 413.2440 def 2.51e-03 | tgo  1826.2 T  9.31/ 9.31 | L  11312.8 T  582.1 s_nd  3.14   12.2s
+      S1 maxiter after 10 it -- blocking: obj   [obj 3.32x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']
+cyc   3 | t   240.0 alt  10546.41 |v|  7.7750 m 598.521 | S1 10it maxiter     D 654.6731 def 1.13e-03 | S2  3it converged   miss 654.7495 def 2.69e-03 | tgo  1724.6 T  9.30/ 9.30 | L  11030.5 T  574.7 s_nd  3.00   11.0s
+      S1 maxiter after 10 it -- blocking: obj   [obj 1.82x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']
+cyc   4 | t   300.0 alt  10143.14 |v|  7.8563 m 598.268 | S1 10it maxiter     D 905.5900 def 1.09e-03 | S2  3it converged   miss 905.6782 def 2.98e-03 | tgo  1626.1 T  9.30/ 9.30 | L  10710.4 T  566.1 s_nd  2.87   10.3s
+      S1 maxiter after 10 it -- blocking: obj   [obj 1.00x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']
+cyc   5 | t   360.0 alt   9713.39 |v|  8.0369 m 598.015 | S1 10it maxiter     D 1137.3158 def 1.05e-03 | S2  3it converged   miss 1137.4085 def 3.04e-03 | tgo  1531.5 T  9.29/ 9.29 | L  10350.9 T  556.4 s_nd  2.75   10.0s
+      S1 maxiter after 10 it -- blocking: obj   [obj 0.91x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']

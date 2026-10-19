@@ -1,0 +1,4 @@
+seed  3061 tight    infeasible  infeasible   it  400 fuel 5.69264 tf  2113.06 [3744s]
+seed  3061 mid      infeasible  infeasible   it  400 fuel 5.69264 tf  2113.06 [2799s]
+seed  3061 default  infeasible  infeasible   it  400 fuel 5.59676 tf  2105.46 [4131s]
+wrote Figures&data/tol_test/seed_3061.json

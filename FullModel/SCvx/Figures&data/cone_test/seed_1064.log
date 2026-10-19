@@ -1,0 +1,2 @@
+seed  1064 cone140   infeasible  infeasible   ang0 140.26 amax 140.26 it  400 fuel 5.82885 tf  2065.91 [4068s]
+seed  1064 cone_off  converged   converged    ang0 140.26 amax 140.26 it    8 fuel 5.51454 tf  2078.97 [128s]

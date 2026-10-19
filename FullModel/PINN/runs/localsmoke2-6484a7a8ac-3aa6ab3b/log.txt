@@ -1,0 +1,13 @@
+run_id localsmoke2-6484a7a8ac-3aa6ab3b   device cpu   out /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/localsmoke2-6484a7a8ac-3aa6ab3b
+parents 40  train 32 val 8 test 0
+pairs  train 158,400   val 39,600
+ansatz carries a nominal reference trajectory (C2 spline, mean training parent)
+structural check: r(0) == r0 [m]=0.00e+00  v(0) == v0 [m/s]=0.00e+00  m(0) == m0 [kg]=0.00e+00  d(0) == d0 [-]=1.19e-07  |d| == 1 [-]=1.19e-07  T in band [N]=-6.08e+00  m <= m0 [kg]=-3.91e-03  r(1) on plane [m]=1.36e-03  r(1) lateral [m]=1.41e-03  tgo(1) == 0 [s]=0.00e+00
+parameters 369,678
+[adam      0] loss 6.7999e+02  r  1214.51 m  v  5.9830 m/s  d  76.42 deg  T  5.022 N  tgo  207.55 s  [0s]
+[adam     59] loss 2.1282e+02  r   882.96 m  v  3.9743 m/s  d  19.33 deg  T  1.665 N  tgo  296.46 s  [11s]
+L-BFGS polish on a FIXED batch: 2,048 supervised, 512 collocation, seed 12345
+[lbfgs     1] loss 2.067879e+02
+L-BFGS: 12 closure evaluations, loss 2.067879e+02 -> 1.711759e+02 (-17.22 %)
+after L-BFGS: val_r_m 882.5  val_v_ms 4.348  val_m_kg 0.4272  val_d_deg 19.33  val_T_N 1.665  val_tgo_s 296.5  val_r_m_end 434.3  val_v_ms_end 5.322  val_tgo_s_end 108.3
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/localsmoke2-6484a7a8ac-3aa6ab3b

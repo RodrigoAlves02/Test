@@ -1,0 +1,74 @@
+run_id fixw1r10-20c915f9c0-121d785a   device mps   out /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/fixw1r10-20c915f9c0-121d785a
+parents 4784  train 3827 val 957 test 0
+pairs  train 18,943,650   val 4,737,150
+structural check: r(0) == r0 [m]=0.00e+00  v(0) == v0 [m/s]=0.00e+00  m(0) == m0 [kg]=0.00e+00  d(0) == d0 [-]=1.19e-07  |d| == 1 [-]=1.19e-07  T in band [N]=-6.09e+00  m <= m0 [kg]=-4.58e-03  r(1) on plane [m]=3.74e-04  r(1) lateral [m]=7.00e-04  tgo(1) == 0 [s]=0.00e+00
+parameters 369,678
+[adam      0] loss 5.5612e+02  r   916.91 m  v  4.6063 m/s  d  75.88 deg  T  4.275 N  tgo  208.86 s  [0s]
+[adam   2000] loss 8.8331e+00  r   864.61 m  v  2.9774 m/s  d  35.84 deg  T  1.671 N  tgo  183.01 s  [96s]
+[adam   4000] loss 8.2515e+00  r   978.46 m  v  2.9040 m/s  d  35.57 deg  T  1.671 N  tgo  216.45 s  [192s]
+[adam   6000] loss 9.9441e-01  r   819.15 m  v  2.8782 m/s  d  32.62 deg  T  1.671 N  tgo  215.43 s  [288s]
+[adam   8000] loss 5.7359e-01  r   599.13 m  v  2.3231 m/s  d  20.78 deg  T  1.671 N  tgo  201.73 s  [383s]
+[adam  10000] loss 6.2952e-01  r   540.08 m  v  2.1676 m/s  d  16.79 deg  T  1.671 N  tgo  220.31 s  [479s]
+[adam  12000] loss 2.5608e+00  r   933.75 m  v  2.4877 m/s  d  23.63 deg  T  1.671 N  tgo  251.75 s  [575s]
+[adam  14000] loss 2.6253e-01  r   653.98 m  v  1.7830 m/s  d  15.00 deg  T  1.671 N  tgo  223.46 s  [671s]
+[adam  16000] loss 5.5426e-01  r   582.45 m  v  1.6825 m/s  d  12.81 deg  T  1.671 N  tgo  285.79 s  [766s]
+[adam  18000] loss 4.0188e-01  r   514.44 m  v  1.8476 m/s  d  12.62 deg  T  1.671 N  tgo  242.71 s  [862s]
+[adam  20000] loss 5.7209e-01  r   491.23 m  v  1.8528 m/s  d  13.25 deg  T  1.671 N  tgo  226.46 s  [958s]
+[adam  22000] loss 2.4197e-01  r   507.48 m  v  1.5610 m/s  d  11.90 deg  T  1.671 N  tgo  240.19 s  [1054s]
+[adam  24000] loss 1.7563e-01  r   535.07 m  v  1.7453 m/s  d  13.96 deg  T  1.671 N  tgo  247.91 s  [1149s]
+[adam  26000] loss 1.5914e-01  r   557.27 m  v  1.6508 m/s  d  12.81 deg  T  1.671 N  tgo  237.89 s  [1245s]
+[adam  28000] loss 1.7197e-01  r   520.98 m  v  1.6702 m/s  d  12.70 deg  T  1.671 N  tgo  242.80 s  [1341s]
+[adam  30000] loss 1.7647e-01  r   486.27 m  v  1.6105 m/s  d  12.13 deg  T  1.671 N  tgo  249.82 s  [1437s]
+[adam  32000] loss 1.4403e-01  r   498.00 m  v  1.6125 m/s  d  12.25 deg  T  1.671 N  tgo  233.77 s  [1532s]
+[adam  34000] loss 1.3609e-01  r   495.09 m  v  1.6107 m/s  d  11.72 deg  T  1.671 N  tgo  230.62 s  [1627s]
+[adam  36000] loss 1.3684e-01  r   485.55 m  v  1.5909 m/s  d  11.56 deg  T  1.671 N  tgo  229.56 s  [1722s]
+[adam  38000] loss 1.3846e-01  r   484.67 m  v  1.5730 m/s  d  11.37 deg  T  1.671 N  tgo  223.48 s  [1817s]
+[adam  39999] loss 1.3271e-01  r   482.40 m  v  1.5790 m/s  d  11.29 deg  T  1.671 N  tgo  225.23 s  [1912s]
+L-BFGS polish on a FIXED batch: 65,536 supervised, 16,384 collocation, seed 12345
+[lbfgs     1] loss 1.314726e-01
+[lbfgs    51] loss 1.305603e-01
+[lbfgs   101] loss 1.302524e-01
+[lbfgs   151] loss 1.300323e-01
+[lbfgs   201] loss 1.298416e-01
+[lbfgs   251] loss 1.296706e-01
+[lbfgs   301] loss 1.294755e-01
+[lbfgs   351] loss 1.292896e-01
+[lbfgs   401] loss 1.291325e-01
+[lbfgs   451] loss 1.289744e-01
+[lbfgs   501] loss 1.288162e-01
+[lbfgs   551] loss 1.286775e-01
+[lbfgs   601] loss 1.285394e-01
+[lbfgs   651] loss 1.284184e-01
+[lbfgs   701] loss 1.282509e-01
+[lbfgs   751] loss 1.281071e-01
+[lbfgs   801] loss 1.279721e-01
+[lbfgs   851] loss 1.278340e-01
+[lbfgs   901] loss 1.277111e-01
+[lbfgs   951] loss 1.275599e-01
+[lbfgs  1001] loss 1.274263e-01
+[lbfgs  1051] loss 1.273193e-01
+[lbfgs  1101] loss 1.271961e-01
+[lbfgs  1151] loss 1.270727e-01
+[lbfgs  1201] loss 1.269720e-01
+[lbfgs  1251] loss 1.268586e-01
+[lbfgs  1301] loss 1.267641e-01
+[lbfgs  1351] loss 1.266503e-01
+[lbfgs  1401] loss 1.265337e-01
+[lbfgs  1451] loss 1.264245e-01
+[lbfgs  1501] loss 1.262998e-01
+[lbfgs  1551] loss 1.261747e-01
+[lbfgs  1601] loss 1.260537e-01
+[lbfgs  1651] loss 1.259407e-01
+[lbfgs  1701] loss 1.258109e-01
+[lbfgs  1751] loss 1.256955e-01
+[lbfgs  1801] loss 1.255848e-01
+[lbfgs  1851] loss 1.254617e-01
+[lbfgs  1901] loss 1.253435e-01
+[lbfgs  1951] loss 1.252220e-01
+[lbfgs  2001] loss 1.250875e-01
+[lbfgs  2051] loss 1.249688e-01
+[lbfgs  2101] loss 1.248491e-01
+[lbfgs  2151] loss 1.247376e-01
+L-BFGS: 2181 closure evaluations, loss 1.314726e-01 -> 1.246630e-01 (-5.18 %)
+after L-BFGS: val_r_m 446  val_v_ms 1.48  val_m_kg 0.3615  val_d_deg 10.75  val_T_N 1.671  val_tgo_s 211.9  val_r_m_end 55.47  val_v_ms_end 0.6378  val_tgo_s_end 45.79
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/fixw1r10-20c915f9c0-121d785a

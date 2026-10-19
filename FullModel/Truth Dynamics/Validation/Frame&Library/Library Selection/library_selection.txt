@@ -1,0 +1,180 @@
+LIBRARY SELECTION - WHICH CODE DRIVES THE TRUTH PROPAGATOR
+FullModel / Truth Dynamics / Validation / Frame&Library / Library Selection
+Scripts: library_test.py, plot_library.py      Output: Figures&data/
+Recorded 2026-09-16
+
+
+================================================================================
+1. WHAT WAS DONE
+================================================================================
+
+Three back ends are compared on the same arc: code written locally, SciPy's
+solve_ivp, and tudatpy.
+
+All three run in ONE process and share ONE mesh, ONE polyhedral evaluable and ONE
+right-hand side,
+
+    rdot = v
+    vdot = R(wt) g(R(-wt) r)
+
+so the only difference between them is the code stepping the ODE. The comparison
+is about the integrator and not about the gravity model.
+
+SETUP
+  Arc          35 km circular orbit, seed 20260916, 1.5 revolutions,
+               tf = 92339.9 s - the same arc as the parking-orbit benchmark
+  Frame        inertial, 6 states, no thrust, no mass
+  Gravity      Werner-Scheeres polyhedral, Gaskell ver64q, 49 152 facets,
+               density set to reproduce GM = 4.4665e5 m^3/s^2, for ALL back ends
+  Reference    the benchmark: local RK4 at dt = 32 s
+
+HOW tudat IS DRIVEN
+  tudat's own custom_state hook, which is meant to accept an arbitrary
+  dy/dt = f(t,x), raises "input type for custom dynamics is inconsistent" in the
+  C++ layer for every combination of state shape, time type and body list that was
+  tried. The working route is a translational propagator whose single acceleration
+  is a Python callback; the callback reads the vehicle's inertial state back out of
+  the environment, which tudat updates before each stage. The dynamics integrated
+  are therefore identical to the other two back ends, which the RK4 result below
+  confirms directly.
+
+WARM-UP
+  Every back end is run once on a throwaway 200 s arc before timing. The first
+  call into SciPy and into tudat pays import, allocation and JIT costs that belong
+  to neither integrator: without the warm-up the first SciPy run measured
+  1877 us/evaluation of integration overhead against 9 us for every later one.
+
+MEMOISATION
+  Deliberately off. The scvx version of this field caches on the bit pattern of r,
+  because polyhedral_gravity 3.3.1 sums its facet contributions in a
+  non-deterministic order. That scatter is about 2e-18 relative, roughly
+  1e-20 m/s^2, which integrates to ~1e-11 m over this arc - four orders below the
+  benchmark's own error. Caching would have corrupted the timing instead, since a
+  memo hit returns without touching the field.
+
+
+================================================================================
+2. RESULTS
+================================================================================
+
+    lib   scheme       setting   evals   error [m]  total s   grav s  integ s  integ %
+  local      rk4        dt=32s   11544   reference     4.19     4.11    0.080      1.9
+  local      rk4        dt=64s    5772   1.727e-05     2.12     2.08    0.042      2.0
+  tudat      rk4        dt=64s    5776   1.724e-05     2.16     2.11    0.057      2.6
+  scipy     RK45    rtol=1e-06     596   2.632e-02     0.22     0.22    0.006      2.6
+  tudat   rkf_45    rtol=1e-06     780   3.556e-01     0.29     0.28    0.007      2.4
+  scipy     RK45    rtol=1e-08    1376   2.660e-03     0.51     0.50    0.013      2.5
+  tudat   rkf_45    rtol=1e-08    1836   1.009e-02     0.72     0.69    0.021      3.0
+  scipy     RK45    rtol=1e-10    3122   2.957e-05     1.18     1.15    0.031      2.7
+  tudat   rkf_45    rtol=1e-10    4356   2.671e-04     1.65     1.61    0.040      2.5
+  scipy     RK45    rtol=1e-12    7478   5.883e-07     2.88     2.80    0.081      2.8
+  tudat   rkf_45    rtol=1e-12   10836   4.440e-06     4.21     4.10    0.109      2.6
+  scipy   DOP853    rtol=1e-06     806   1.252e-01     0.31     0.31    0.008      2.6
+  tudat  rkdp_87    rtol=1e-06    1027   1.007e-02     0.40     0.39    0.010      2.5
+  scipy   DOP853    rtol=1e-08    1202   1.016e-03     0.47     0.46    0.012      2.5
+  tudat  rkdp_87    rtol=1e-08    1508   5.562e-05     0.59     0.58    0.014      2.4
+  scipy   DOP853    rtol=1e-10    2006   3.121e-05     0.79     0.77    0.019      2.4
+  tudat  rkdp_87    rtol=1e-10    2509   8.034e-07     0.99     0.97    0.024      2.4
+  scipy   DOP853    rtol=1e-12    3350   6.394e-07     1.32     1.29    0.034      2.6
+  tudat  rkdp_87    rtol=1e-12   26806   1.184e-06    10.90    10.62    0.274      2.5
+
+  Errors are measured against the dt = 32 s benchmark, whose own error is about
+  1.0e-6 m. Anything at or below that is the reference showing through, not a
+  property of the scheme - the grey band on the figure marks it.
+
+  SciPy has no fixed-step method at all. solve_ivp offers only RK23, RK45, DOP853,
+  Radau, BDF and LSODA, every one of them adaptive, so the dt = 64 s RK4 comparison
+  is local against tudat only.
+
+
+================================================================================
+3. WHAT THE NUMBERS SAY
+================================================================================
+
+THE TWO RK4 RUNS AGREE, WHICH VALIDATES THE WHOLE SETUP
+  local  1.727e-05 m over 5772 evaluations
+  tudat  1.724e-05 m over 5776 evaluations
+  Agreement to 0.2%, and 4.00 evaluations per step on both. The four extra
+  evaluations are one extra step from tudat's exact-termination handling of the
+  final, trimmed step. Two independently written integrators reaching the same
+  answer through the same field is the strongest evidence that the tudat callback
+  really is integrating the same dynamics.
+
+THE LIBRARY IS NOT THE COST. THE GRAVITY FIELD IS.
+  Integration overhead is 1.9 to 3.0 percent of wall clock for EVERY back end,
+  and 9 to 12 us per evaluation against 356 to 396 us for the polyhedral call.
+  tudat's C++ to Python boundary crossing costs nothing measurable over SciPy's
+  pure-Python stepping. Choosing between these libraries on speed is choosing
+  between 97.5% and 97.5%.
+
+  This means the only figure of merit that matters is EVALUATIONS TO REACH AN
+  ACCURACY, which is what the plot shows.
+
+AT MATCHED TOLERANCE, SciPy IS MORE ACCURATE PER EVALUATION THAN tudat AT ORDER 5
+  SciPy's RK45 is Dormand-Prince; tudat's rkf_45 is Fehlberg. At every tolerance
+  tudat spends 1.3 to 1.45 times more evaluations AND ends up less accurate:
+  at rtol = 1e-10, SciPy needs 3122 evaluations for 2.96e-5 m where tudat needs
+  4356 for 2.67e-4 m. On the work-precision curve SciPy's order-5 line sits below
+  and left of tudat's throughout.
+
+AT ORDER 8 THE ORDERING REVERSES
+  tudat's rkdp_87 is more accurate per evaluation than SciPy's DOP853 over most of
+  the range: 1508 evaluations for 5.56e-5 m against SciPy's 1202 for 1.02e-3 m, and
+  2509 for 8.03e-7 m against 2006 for 3.12e-5 m. Reading the curves rather than the
+  tolerances, tudat's order-8 line is the best of the four.
+
+  ANOMALY, and it is reproducible: rkdp_87 at rtol = 1e-12 spends 26 806
+  evaluations, an eleven-fold jump from 2509 at 1e-10, to land at 1.18e-6 m - no
+  better than it managed at 1e-10. The step-size controller is thrashing at that
+  tolerance. It is not noise; it repeated across runs. Do not use tudat's default
+  step-size control at rtol below about 1e-11 without looking at what it does.
+
+TOLERANCE IS NOT COMPARABLE ACROSS LIBRARIES
+  The same rtol means different things to the two libraries, because the error
+  estimators and the step controllers differ. Comparing them at matched rtol is
+  meaningless; comparing them at matched ACCURACY, by reading across the
+  work-precision curves, is the only fair comparison.
+
+
+================================================================================
+4. FIGURE
+================================================================================
+
+  Figures&data/library_comparison.pdf / .png
+  Figures&data/library_test.json
+
+  Position error against gravity evaluations. Colour is the library - blue SciPy,
+  orange tudat, green local. Shape is the scheme - solid circles for the order-5
+  pair, dashed triangles for the order-8 pair, stars for fixed-step RK4 at
+  dt = 64 s. The two RK4 stars sit on the same point, so the local marker is drawn
+  larger and rings the tudat one.
+
+  Cost is evaluations rather than wall clock: every back end calls the same field
+  at the same price, so the count is the only thing separating them, and wall
+  clock would fold in the 2.5% library overhead reported above.
+
+
+================================================================================
+5. LIMITS
+================================================================================
+
+  - One arc only, an unthrusted 35 km orbit. Behaviour across thrust
+    discontinuities is a separate question and is not tested here.
+  - The reference is the dt = 32 s benchmark at ~1e-6 m, so the bottom decade of
+    the figure is floor-limited and four of the runs sit inside it.
+  - tudat's Bulirsch-Stoer and Adams-Bashforth-Moulton were not tested, nor were
+    SciPy's Radau, BDF and LSODA. Only the schemes with a counterpart in the other
+    library were run, so that every comparison is like for like.
+  - Timing is single-core, single-machine, with threading pinned to one thread.
+
+
+================================================================================
+6. ENVIRONMENT
+================================================================================
+
+  tudat     ~/miniforge3/envs/tudat/bin/python
+            Python 3.12.14, tudatpy 1.0.0, numpy 1.26.4, scipy 1.17.1,
+            polyhedral_gravity 3.3.1, trimesh 4.12.2
+  Miniforge installed at ~/miniforge3 without sudo; conda init was NOT run, so the
+  shell profile is untouched and both environments are reached by absolute path.
+  The project .venv is unchanged.

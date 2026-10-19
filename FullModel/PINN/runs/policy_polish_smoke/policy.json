@@ -1,0 +1,45 @@
+{
+ "data_dir": "../SCvx/Figures&data/pinn",
+ "name": "policy_polish_smoke",
+ "n_parents": 60,
+ "steps": 300,
+ "batch": 8192,
+ "lr": 0.001,
+ "lr_final": 1e-05,
+ "width": 256,
+ "depth": 5,
+ "seed": 0,
+ "eval_every": 300,
+ "lbfgs_steps": 50,
+ "lbfgs_batch": 8192,
+ "lbfgs_seed": 12345,
+ "notes": "",
+ "history": [
+  {
+   "step": 0,
+   "loss": 0.2826264798641205,
+   "d_omega_deg_s": 0.22282972931861877,
+   "d_T_N": 7.277528762817383,
+   "gauge": 1.1641532182693481e-10
+  },
+  {
+   "step": 299,
+   "loss": 0.10024383664131165,
+   "d_omega_deg_s": 0.2202133983373642,
+   "d_T_N": 1.9973286390304565,
+   "gauge": 8.731149137020111e-11
+  }
+ ],
+ "polish": {
+  "closure_evals": 12,
+  "loss_before": 0.10093958675861359,
+  "loss_after": 0.10092705488204956,
+  "batch": 4752,
+  "d_omega_deg_s": 0.21949662268161774,
+  "d_T_N": 2.013151168823242,
+  "gauge": 8.731149137020111e-11
+ },
+ "n_train": 4752,
+ "n_val": 1188,
+ "parameters": 266755
+}

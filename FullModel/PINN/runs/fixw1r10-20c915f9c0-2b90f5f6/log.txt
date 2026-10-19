@@ -1,0 +1,6 @@
+run_id fixw1r10-20c915f9c0-2b90f5f6   device cpu   out /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/fixw1r10-20c915f9c0-2b90f5f6
+parents 4784  train 3827 val 957 test 0
+pairs  train 18,943,650   val 4,737,150
+structural check: r(0) == r0 [m]=0.00e+00  v(0) == v0 [m/s]=0.00e+00  m(0) == m0 [kg]=0.00e+00  d(0) == d0 [-]=1.19e-07  |d| == 1 [-]=1.19e-07  T in band [N]=-6.09e+00  m <= m0 [kg]=-4.58e-03  r(1) on plane [m]=3.74e-04  r(1) lateral [m]=7.00e-04  tgo(1) == 0 [s]=0.00e+00
+parameters 369,678
+[adam      0] loss 6.5508e+02  r   914.83 m  v  4.5599 m/s  d  75.70 deg  T  4.342 N  tgo  208.31 s  [1s]

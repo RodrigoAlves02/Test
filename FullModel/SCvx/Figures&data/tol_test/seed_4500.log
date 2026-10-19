@@ -1,0 +1,4 @@
+seed  4500 tight    converged   converged    it    7 fuel 5.45164 tf  1937.79 [361s]
+seed  4500 mid      converged   converged    it    7 fuel 5.45164 tf  1937.79 [344s]
+seed  4500 default  converged   converged    it    6 fuel 5.45323 tf  1935.94 [247s]
+wrote Figures&data/tol_test/seed_4500.json

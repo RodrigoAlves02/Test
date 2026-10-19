@@ -1,0 +1,4 @@
+seed   700 tight    converged   converged    it    8 fuel 5.55048 tf  1987.81 [421s]
+seed   700 mid      converged   converged    it    7 fuel 5.55167 tf  1985.62 [391s]
+seed   700 default  converged   converged    it    7 fuel 5.55260 tf  1978.81 [303s]
+wrote Figures&data/tol_test/seed_700.json

@@ -1,0 +1,4 @@
+seed    50 tight    converged   converged    it    7 fuel 5.39132 tf  2056.66 [487s]
+seed    50 mid      converged   converged    it    7 fuel 5.39132 tf  2056.66 [468s]
+seed    50 default  converged   converged    it    7 fuel 5.39405 tf  2051.80 [310s]
+wrote Figures&data/tol_test/seed_50.json

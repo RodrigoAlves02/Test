@@ -1,0 +1,4 @@
+seed  2021 tight    infeasible  infeasible   it  400 fuel 11.53408 tf  2024.75 [3820s]
+seed  2021 mid      infeasible  infeasible   it  400 fuel 11.53408 tf  2024.75 [2998s]
+seed  2021 default  infeasible  infeasible   it  400 fuel 4.60235 tf  2023.49 [4026s]
+wrote Figures&data/tol_test/seed_2021.json

@@ -1,0 +1,31 @@
+{
+ "data_dir": "../SCvx/Figures&data/pinn",
+ "name": "policy_full_polished",
+ "n_parents": null,
+ "steps": 0,
+ "batch": 8192,
+ "lr": 0.001,
+ "lr_final": 1e-05,
+ "width": 256,
+ "depth": 5,
+ "seed": 0,
+ "eval_every": 1000,
+ "lbfgs_steps": 2000,
+ "lbfgs_batch": 65536,
+ "lbfgs_seed": 12345,
+ "resume": "policy_full_local",
+ "notes": "polish-of-policy_full_local",
+ "history": [],
+ "polish": {
+  "closure_evals": 2171,
+  "loss_before": 0.011844133958220482,
+  "loss_after": 0.011387970298528671,
+  "batch": 65536,
+  "d_omega_deg_s": 0.162531778216362,
+  "d_T_N": 0.0282601248472929,
+  "gauge": 2.7939677238464355e-09
+ },
+ "n_train": 378873,
+ "n_val": 94743,
+ "parameters": 266755
+}

@@ -1,0 +1,29 @@
+handover: altitude 11.771 km, |v| 8.6093 m/s, m 599.53 kg
+per-cycle rescaling: ON   plan gravity: pinn   nav gravity: pinn   truth gravity: poly 49k
+truth integrator: RK8 fixed, INERTIAL frame, dt 0.5 s
+K 40, guidance cycle 60 s, actuator sub-step 0.5 s, tau 1e-09 s, slew 1e+06 deg/s
+
+cycle-0 warm start: nominal descent.npz  K 60, tf 2037.7 s
+cyc   0 | t    60.0 alt  11521.37 |v|  8.2497 m 599.293 | S1  2it converged   D   0.0000 def 2.94e-01 | S2  8it converged   miss   0.0611 def 4.15e-03 | tgo  2059.8 T  5.01/ 5.01 | L  11771.0 T  594.0 s_nd  3.47   11.6s
+cyc   1 | t   120.0 alt  11286.37 |v|  8.0840 m 599.156 | S1  2it converged   D   0.0000 def 2.68e-02 | S2  3it converged   miss   0.0263 def 3.30e-03 | tgo  1986.1 T  5.71/ 5.71 | L  11559.0 T  588.5 s_nd  3.37    5.3s
+cyc   2 | t   180.0 alt  10960.23 |v|  7.9367 m 599.001 | S1  2it converged   D   0.0000 def 1.62e-02 | S2  3it converged   miss   0.0296 def 1.51e-03 | tgo  1934.8 T  5.00/ 5.00 | L  11324.0 T  582.4 s_nd  3.32    5.2s
+cyc   3 | t   240.0 alt  10620.93 |v|  7.8427 m 598.865 | S1  2it converged   D   0.0000 def 8.28e-03 | S2  3it converged   miss   0.0085 def 1.54e-03 | tgo  1879.9 T  5.00/ 5.00 | L  11070.1 T  575.8 s_nd  3.26    5.1s
+cyc   4 | t   300.0 alt  10275.67 |v|  7.7844 m 598.730 | S1  2it converged   D   0.0000 def 5.50e-03 | S2  3it converged   miss   0.0196 def 1.63e-03 | tgo  1826.4 T  5.00/ 5.00 | L  10796.4 T  568.6 s_nd  3.21    5.1s
+
+==================================================================
+WHERE IT LANDS
+==================================================================
+  landed            : False
+  time of flight    : 300.00 s
+  miss from site    : 10503.5822 m   (on the surface; 1908.8917 m projected into the datum plane)
+  altitude          : 10275.66632 m
+  touchdown speed   : 7.7844 m/s   (vertical -6.0371, limit 0.3)
+  thrust angle      : 124.16 deg from the local vertical
+  propellant        : 0.8039 kg
+  cycles            : 5, mean solve 6.5 s
+  committed cycles  : 0
+  inaccurate solves : 0 of 30 subproblems (0.0%)
+  re-plan failures  : 0
+
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/SCvx/Figures&data/closed_loop_d1.json
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/SCvx/Figures&data/closed_loop_plans_d1.npz  (5 plans)

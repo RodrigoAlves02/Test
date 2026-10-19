@@ -1,0 +1,4 @@
+seed  4700 tight    converged   converged    it    6 fuel 5.18504 tf  1954.97 [474s]
+seed  4700 mid      converged   converged    it    6 fuel 5.18368 tf  1956.86 [500s]
+seed  4700 default  converged   converged    it    6 fuel 5.18868 tf  1943.83 [323s]
+wrote Figures&data/tol_test/seed_4700.json

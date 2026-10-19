@@ -1,0 +1,66 @@
+handover: altitude 11.771 km, |v| 8.6093 m/s, m 599.53 kg
+per-cycle rescaling: ON   plan gravity: pinn   nav gravity: pinn   truth gravity: poly 49k
+truth integrator: RK8 fixed, INERTIAL frame, dt 0.5 s
+K 40, guidance cycle 60 s, actuator sub-step 0.5 s, tau 0.5 s, slew 2 deg/s
+
+cycle-0 warm start: nominal descent.npz  K 60, tf 2037.7 s
+cyc   0 | t    60.0 alt  11521.36 |v|  8.2490 m 599.292 | S1  2it converged   D   0.0000 def 2.94e-01 | S2  8it converged   miss   0.0606 def 4.15e-03 | tgo  2059.8 T  5.01/ 5.01 | L  11771.0 T  594.0 s_nd  3.47    8.3s
+/Users/rodrigoalves/Desktop/Thesis/FullModel/SCvx/subproblem.py:279: UserWarning: Solution may be inaccurate. Try another solver, adjusting the solver settings, or solve with verbose=True for more information.
+  prob.solve(solver=getattr(cp, name), **SOLVER_OPTS[name])
+cyc   1 | t   120.0 alt  11286.26 |v|  8.0837 m 599.156 | S1  2it converged   D   0.0000 def 7.19e-03 | S2  3it converged   miss   0.0532 def 8.08e-04 | tgo  2004.5 T  5.00/ 5.00 | L  11559.0 T  588.5 s_nd  3.41    4.4s
+cyc   2 | t   180.0 alt  10961.33 |v|  7.9512 m 599.020 | S1  2it converged   D   0.0000 def 1.28e-02 | S2  3it converged   miss   0.0068 def 2.70e-03 | tgo  1950.8 T  5.00/ 5.00 | L  11323.9 T  582.4 s_nd  3.35    4.4s
+cyc   3 | t   240.0 alt  10624.71 |v|  7.8532 m 598.884 | S1  2it converged   D   0.0000 def 2.04e-02 | S2  3it converged   miss   0.0193 def 1.57e-03 | tgo  1897.7 T  5.00/ 5.00 | L  11071.4 T  575.8 s_nd  3.30    4.5s
+cyc   4 | t   300.0 alt  10283.00 |v|  7.7908 m 598.748 | S1  2it converged   D   0.0000 def 9.92e-03 | S2  3it converged   miss   0.0652 def 1.38e-03 | tgo  1843.5 T  5.00/ 5.00 | L  10800.8 T  568.7 s_nd  3.24    4.5s
+cyc   5 | t   360.0 alt   9927.33 |v|  7.7607 m 598.612 | S1  2it converged   D   0.0000 def 1.50e-02 | S2  3it converged   miss   0.0030 def 1.42e-03 | tgo  1788.7 T  5.00/ 5.00 | L  10511.0 T  561.0 s_nd  3.19    4.7s
+cyc   6 | t   420.0 alt   9509.75 |v|  7.7625 m 598.476 | S1  2it converged   D   0.0000 def 1.81e-01 | S2  3it converged   miss   0.0336 def 3.32e-03 | tgo  1731.0 T  5.00/ 5.00 | L  10201.4 T  552.6 s_nd  3.13    4.7s
+cyc   7 | t   480.0 alt   9077.84 |v|  7.7992 m 598.340 | S1  2it converged   D   0.0000 def 3.54e-02 | S2  3it converged   miss   0.0943 def 3.25e-03 | tgo  1675.4 T  5.00/ 5.00 | L   9871.5 T  543.5 s_nd  3.08    4.7s
+cyc   8 | t   540.0 alt   8630.24 |v|  7.8672 m 598.204 | S1  2it converged   D   0.0000 def 8.32e-03 | S2  3it converged   miss   0.0943 def 2.80e-03 | tgo  1620.0 T  5.00/ 5.00 | L   9520.8 T  533.7 s_nd  3.04    4.7s
+cyc   9 | t   600.0 alt   8182.51 |v|  7.9566 m 598.068 | S1  2it converged   D   0.0000 def 2.37e-02 | S2  3it converged   miss   0.0970 def 2.62e-03 | tgo  1566.1 T  5.00/ 5.00 | L   9148.7 T  523.1 s_nd  2.99    4.7s
+cyc  10 | t   660.0 alt   7721.83 |v|  8.0523 m 597.932 | S1  2it converged   D   0.0000 def 4.49e-03 | S2  3it converged   miss   0.0212 def 1.59e-03 | tgo  1512.2 T  5.00/ 5.00 | L   8755.2 T  511.7 s_nd  2.96    4.7s
+cyc  11 | t   720.0 alt   7243.97 |v|  8.1472 m 597.796 | S1  2it converged   D   0.0000 def 9.17e-03 | S2  3it converged   miss   0.0384 def 1.75e-03 | tgo  1457.1 T  5.01/ 5.01 | L   8340.7 T  499.4 s_nd  2.92    4.7s
+cyc  12 | t   780.0 alt   6755.90 |v|  8.2570 m 597.660 | S1  2it converged   D   0.0000 def 2.80e-02 | S2  3it converged   miss   0.0083 def 1.56e-03 | tgo  1401.2 T  5.01/ 5.01 | L   7906.4 T  486.1 s_nd  2.88    4.8s
+cyc  13 | t   840.0 alt   6260.41 |v|  8.3936 m 597.524 | S1  2it converged   D   0.0000 def 5.90e-03 | S2  3it converged   miss   0.0919 def 2.22e-03 | tgo  1350.0 T  5.00/ 5.00 | L   7453.4 T  471.9 s_nd  2.86    4.8s
+cyc  14 | t   900.0 alt   5760.13 |v|  8.5002 m 597.388 | S1  2it converged   D   0.0000 def 2.82e-02 | S2  3it converged   miss   0.0757 def 1.34e-03 | tgo  1295.6 T  5.01/ 5.01 | L   6981.8 T  456.7 s_nd  2.84    4.8s
+cyc  15 | t   960.0 alt   5266.45 |v|  8.4399 m 597.243 | S1  2it converged   D   0.0000 def 1.10e-01 | S2  3it converged   miss   0.0800 def 2.00e-03 | tgo  1264.4 T  5.76/ 5.76 | L   6493.0 T  440.4 s_nd  2.87    4.9s
+cyc  16 | t  1020.0 alt   4802.62 |v|  8.1515 m 597.090 | S1  2it converged   D   0.0000 def 7.73e-02 | S2  4it converged   miss   0.0774 def 7.41e-04 | tgo  1237.5 T  5.42/ 5.42 | L   5994.1 T  423.1 s_nd  2.93    5.6s
+cyc  17 | t  1080.0 alt   4364.13 |v|  7.7682 m 596.947 | S1  2it converged   D   0.0000 def 2.02e-02 | S2  4it converged   miss   0.0962 def 8.99e-04 | tgo  1189.6 T  5.06/ 5.06 | L   5500.3 T  405.2 s_nd  2.94    5.6s
+cyc  18 | t  1140.0 alt   3945.55 |v|  7.3777 m 596.809 | S1  2it converged   D   0.0000 def 9.24e-03 | S2  4it converged   miss   0.0977 def 2.94e-04 | tgo  1099.1 T  5.02/ 5.02 | L   5024.5 T  387.3 s_nd  2.84    5.6s
+cyc  19 | t  1200.0 alt   3548.79 |v|  6.9983 m 596.673 | S1  2it converged   D   0.0000 def 2.02e-02 | S2  3it converged   miss   0.0973 def 3.71e-03 | tgo  1038.9 T  5.02/ 5.02 | L   4570.9 T  369.3 s_nd  2.81    4.8s
+cyc  20 | t  1260.0 alt   3182.03 |v|  6.6290 m 596.537 | S1  2it converged   D   0.0000 def 1.64e-02 | S2  3it converged   miss   0.0822 def 3.72e-03 | tgo   980.2 T  5.01/ 5.01 | L   4140.0 T  351.4 s_nd  2.79    4.7s
+cyc  21 | t  1320.0 alt   2845.33 |v|  6.2703 m 596.400 | S1  2it converged   D   0.0000 def 2.11e-02 | S2  3it converged   miss   0.0737 def 3.12e-03 | tgo   924.2 T  5.02/ 5.02 | L   3731.4 T  333.6 s_nd  2.77    4.7s
+cyc  22 | t  1380.0 alt   2529.33 |v|  5.8766 m 596.251 | S1  2it converged   D   0.0000 def 2.12e-02 | S2  3it converged   miss   0.0922 def 1.14e-03 | tgo   866.7 T  6.86/ 6.86 | L   3344.7 T  315.8 s_nd  2.74    4.8s
+cyc  23 | t  1440.0 alt   2234.38 |v|  5.4548 m 596.091 | S1  2it converged   D   0.0000 def 2.16e-03 | S2  3it converged   miss   0.0505 def 1.79e-04 | tgo   812.3 T  5.29/ 5.29 | L   2979.4 T  298.0 s_nd  2.73    4.7s
+cyc  24 | t  1500.0 alt   1964.14 |v|  5.1033 m 595.948 | S1  5it converged   D   0.0001 def 5.37e-05 | S2  2it converged   miss   0.0924 def 1.27e-03 | tgo   759.5 T  5.01/ 5.01 | L   2640.8 T  280.5 s_nd  2.71    6.5s
+cyc  25 | t  1560.0 alt   1716.96 |v|  4.7657 m 595.807 | S1  6it converged   D   0.0000 def 2.60e-05 | S2  2it converged   miss   0.0929 def 3.67e-03 | tgo   706.2 T  5.00/ 5.00 | L   2324.4 T  263.2 s_nd  2.68    7.4s
+cyc  26 | t  1620.0 alt   1482.79 |v|  4.4461 m 595.668 | S1  6it converged   D   0.0000 def 2.17e-05 | S2  2it converged   miss   0.0713 def 3.05e-03 | tgo   652.7 T  5.09/ 5.09 | L   2028.5 T  245.8 s_nd  2.66    7.5s
+cyc  27 | t  1680.0 alt   1256.53 |v|  4.1347 m 595.530 | S1  2it converged   D   0.0000 def 1.75e-02 | S2  2it converged   miss   0.0905 def 6.35e-04 | tgo   595.1 T  5.03/ 5.03 | L   1752.2 T  228.4 s_nd  2.60    4.1s
+cyc  28 | t  1740.0 alt   1043.34 |v|  3.8370 m 595.393 | S1  2it converged   D   0.0000 def 1.71e-03 | S2  2it converged   miss   0.0368 def 9.90e-05 | tgo   536.8 T  5.04/ 5.04 | L   1495.0 T  211.0 s_nd  2.54    4.1s
+cyc  29 | t  1800.0 alt    850.99 |v|  3.5471 m 595.256 | S1  2it converged   D   0.0000 def 1.66e-04 | S2  2it converged   miss   0.0099 def 9.00e-05 | tgo   477.9 T  5.06/ 5.06 | L   1256.1 T  193.4 s_nd  2.47    4.0s
+cyc  30 | t  1860.0 alt    684.86 |v|  3.2616 m 595.117 | S1  2it converged   D   0.0000 def 2.40e-04 | S2  2it converged   miss   0.0126 def 2.68e-05 | tgo   419.3 T  5.09/ 5.09 | L   1034.9 T  175.5 s_nd  2.39    4.0s
+cyc  31 | t  1920.0 alt    537.74 |v|  2.9780 m 594.978 | S1  2it converged   D   0.0000 def 3.71e-04 | S2  2it converged   miss   0.0117 def 2.67e-05 | tgo   361.5 T  5.15/ 5.15 | L    831.1 T  157.3 s_nd  2.30    4.1s
+cyc  32 | t  1980.0 alt    404.68 |v|  2.6951 m 594.836 | S1  2it converged   D   0.0035 def 5.16e-04 | S2  2it converged   miss   0.0190 def 3.39e-05 | tgo   304.6 T  5.25/ 5.25 | L    644.5 T  138.5 s_nd  2.20    4.0s
+cyc  33 | t  2040.0 alt    278.42 |v|  2.4104 m 594.689 | S1  2it converged   D   0.0000 def 4.37e-04 | S2  2it converged   miss   0.0073 def 2.28e-05 | tgo   248.2 T  5.50/ 5.50 | L    475.1 T  118.9 s_nd  2.09    4.0s
+cyc  34 | t  2100.0 alt    164.57 |v|  2.0787 m 594.527 | S1  2it converged   D   0.0000 def 1.84e-04 | S2  2it converged   miss   0.0239 def 1.53e-04 | tgo   191.6 T  6.35/ 6.34 | L    322.3 T   97.9 s_nd  1.96    4.0s
+cyc  35 | t  2160.0 alt     67.82 |v|  1.5852 m 594.318 | S1  2it converged   D   0.0000 def 4.56e-05 | S2  2it converged   miss   0.0291 def 2.65e-05 | tgo   135.9 T  9.08/ 9.08 | L    187.6 T   74.7 s_nd  1.82    3.8s
+cyc  36 | t  2220.0 alt      7.50 |v|  0.5823 m 593.969 | S1  4it converged   D   0.0000 def 2.02e-06 | S2  2it converged   miss   0.0847 def 1.34e-03 | tgo    81.3 T 11.44/11.44 | L     76.5 T   47.7 s_nd  1.71    3.9s
+cyc  37 | t  2238.6 alt     -0.00 |v|  0.3121 m 593.869 | S1  5it converged   D   0.0368 def 1.45e-06 | S2  2it converged   miss   0.1288 def 4.81e-04 | tgo    18.9 T 17.13/15.86 | L      8.7 T   16.1 s_nd  1.17    2.6s
+
+TOUCHDOWN at t = 2238.60 s
+
+==================================================================
+WHERE IT LANDS
+==================================================================
+  landed            : True
+  time of flight    : 2238.60 s
+  miss from site    : 0.1912 m   (on the surface; 0.1811 m projected into the datum plane)
+  altitude          : -0.00000 m
+  touchdown speed   : 0.3121 m/s   (vertical -0.2807, limit 0.3)
+  thrust angle      : 1.25 deg from the local vertical
+  propellant        : 5.6649 kg
+  cycles            : 38, mean solve 4.8 s
+  committed cycles  : 0
+  inaccurate solves : 2 of 200 subproblems (1.0%)
+  re-plan failures  : 0
+
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/SCvx/Figures&data/closed_loop_p8b.json
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/SCvx/Figures&data/closed_loop_plans_p8b.npz  (38 plans)

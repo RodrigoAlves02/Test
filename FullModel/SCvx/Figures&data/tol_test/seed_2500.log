@@ -1,0 +1,4 @@
+seed  2500 tight    converged   converged    it    8 fuel 5.52884 tf  1939.65 [555s]
+seed  2500 mid      converged   converged    it    7 fuel 5.52732 tf  1942.65 [502s]
+seed  2500 default  converged   converged    it    6 fuel 5.53884 tf  1936.59 [281s]
+wrote Figures&data/tol_test/seed_2500.json

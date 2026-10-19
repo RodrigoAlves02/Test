@@ -1,0 +1,83 @@
+{
+ "name": "smoke2",
+ "notes": "",
+ "data_dir": "../SCvx/Figures&data/pinn_trial",
+ "defect_max": 0.001,
+ "j_max": null,
+ "n_parents": null,
+ "frac_val": 0.2,
+ "frac_test": 0.0,
+ "split_seed": 0,
+ "weighting": "none",
+ "batch": 1024,
+ "n_collocation": 512,
+ "collocation_tau": "uniform",
+ "width": 64,
+ "depth": 3,
+ "activation": "tanh",
+ "fourier_features": 0,
+ "sigma_head": true,
+ "sigma_sharpness": 12.0,
+ "w_r": 1.0,
+ "w_v": 1.0,
+ "w_m": 1.0,
+ "w_d": 1.0,
+ "w_T": 1.0,
+ "w_tgo": 1.0,
+ "w_residual": 1.0,
+ "w_hinge": 1.0,
+ "residual_ramp_steps": 100,
+ "adam_steps": 400,
+ "adam_lr": 0.001,
+ "adam_lr_final": 1e-05,
+ "lbfgs_steps": 0,
+ "lbfgs_history": 50,
+ "grad_clip": 1.0,
+ "seed": 0,
+ "device": "cpu",
+ "amp": false,
+ "eval_every": 200,
+ "out_root": "runs",
+ "data_fingerprint": {
+  "n_parents": 10,
+  "sha1": "b0297c822d5d466b3c2a92f8068ccfaec7584cff",
+  "seed_lo": 1,
+  "seed_hi": 10
+ },
+ "split": {
+  "train": [
+   1,
+   2,
+   3,
+   6,
+   7,
+   8,
+   9,
+   10
+  ],
+  "val": [
+   4,
+   5
+  ],
+  "test": [],
+  "n_used": 10,
+  "n_available": 10
+ },
+ "scaling": {
+  "r_site": [
+   807.7088846041461,
+   4932.384175831779,
+   -4193.887387950232
+  ],
+  "n_hat": [
+   0.17423319557537334,
+   0.7215458253574966,
+   -0.6700853792381705
+  ],
+  "L": 14970.48923007937,
+  "V": 8.11533660594822,
+  "M": 601.6860851369636,
+  "T_N": 19.999793291516994,
+  "TF": 2338.1186774509197
+ }
+}

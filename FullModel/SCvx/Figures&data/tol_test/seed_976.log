@@ -1,0 +1,4 @@
+seed   976 tight    converged   maxiter      it  203 fuel 5.90803 tf  2476.38 [1432s]
+seed   976 mid      converged   maxiter      it  204 fuel 5.87724 tf  2471.88 [892s]
+seed   976 default  converged   converged    it   36 fuel 6.00389 tf  2546.95 [287s]
+wrote Figures&data/tol_test/seed_976.json

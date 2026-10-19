@@ -1,0 +1,4 @@
+seed  4291 tight    converged   maxiter      it  203 fuel 7.69691 tf  3396.17 [1453s]
+seed  4291 mid      converged   maxiter      it  203 fuel 8.13211 tf  3588.91 [878s]
+seed  4291 default  converged   maxiter      it  203 fuel 7.72375 tf  3408.67 [773s]
+wrote Figures&data/tol_test/seed_4291.json

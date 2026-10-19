@@ -1,0 +1,26 @@
+nominal plan: loaded from cache, fuel 5.52606 kg, tf 2045.60 s
+segment 20.663 s (plan node spacing)   arc 0 to 2040.0 s of 2045.6 s
+pairs: 10 vs 5,  5 vs 2.5,  2 vs 1,  1 vs 0.5,  0.5 vs 0.25,  0.2 vs 0.1,  0.1 vs 0.05
+10 propagations: 10, 5, 2.5, 2, 1, 0.5, 0.25, 0.2, 0.1, 0.05
+gravity: polyhedral, 49,152 facets   frame: inertial   scheme: rk8
+
+  dt  10.0000 s      204 steps       2,448 gravity calls      1.0 s wall
+  dt   5.0000 s      408 steps       4,896 gravity calls      2.1 s wall
+  dt   2.5000 s      816 steps       9,792 gravity calls      4.2 s wall
+  dt   2.0000 s     1020 steps      12,240 gravity calls      5.2 s wall
+  dt   1.0000 s     2040 steps      24,480 gravity calls     11.0 s wall
+  dt   0.5000 s     4080 steps      48,960 gravity calls     21.5 s wall
+  dt   0.2500 s     8160 steps      97,920 gravity calls     42.6 s wall
+  dt   0.2000 s    10200 steps     122,400 gravity calls     53.6 s wall
+  dt   0.1000 s    20400 steps     244,800 gravity calls    106.4 s wall
+  dt   0.0500 s    40800 steps     489,600 gravity calls    211.8 s wall
+
+  dt  10.00 vs  5.000:  max |dr| 4.5128e+01 m   at end 4.5128e+01 m   max |dv| 3.1904e-01 m/s
+  dt   5.00 vs  2.500:  max |dr| 2.2022e+02 m   at end 2.2022e+02 m   max |dv| 4.2272e-01 m/s
+  dt   2.00 vs  1.000:  max |dr| 3.4370e+02 m   at end 3.4370e+02 m   max |dv| 2.0978e-01 m/s
+  dt   1.00 vs  0.500:  max |dr| 8.9281e+01 m   at end 8.9281e+01 m   max |dv| 6.3625e-02 m/s
+  dt   0.50 vs  0.250:  max |dr| 8.2567e+01 m   at end 8.2567e+01 m   max |dv| 4.8691e-02 m/s
+  dt   0.20 vs  0.100:  max |dr| 3.2896e+01 m   at end 3.2896e+01 m   max |dv| 1.8323e-02 m/s
+  dt   0.10 vs  0.050:  max |dr| 4.2064e+00 m   at end 4.2064e+00 m   max |dv| 3.4355e-03 m/s
+
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/Truth Dynamics/Figures&Data/step_convergence.json

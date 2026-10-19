@@ -1,0 +1,12 @@
+run_id localsmoke4-b932e481c2-af222541   device cpu   out /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/localsmoke4-b932e481c2-af222541
+parents 40  train 32 val 8 test 0
+pairs  train 158,400   val 39,600
+structural check: r(0) == r0 [m]=0.00e+00  v(0) == v0 [m/s]=0.00e+00  m(0) == m0 [kg]=0.00e+00  d(0) == d0 [-]=1.19e-07  |d| == 1 [-]=1.19e-07  T in band [N]=-6.08e+00  m <= m0 [kg]=-3.91e-03  r(1) on plane [m]=3.74e-04  r(1) lateral [m]=7.00e-04  tgo(1) == 0 [s]=0.00e+00
+parameters 369,678
+[adam      0] loss 6.5328e+02  r   890.96 m  v  4.5294 m/s  d  76.38 deg  T  4.180 N  tgo  207.56 s  [0s]
+[adam     59] loss 2.1480e+02  r   685.59 m  v  4.1092 m/s  d  19.94 deg  T  1.666 N  tgo  191.33 s  [11s]
+L-BFGS polish on a FIXED batch: 2,048 supervised, 512 collocation, seed 12345
+[lbfgs     1] loss 2.142298e+02
+L-BFGS: 9 closure evaluations, loss 2.142298e+02 -> 1.720897e+02 (-19.67 %)
+after L-BFGS: val_r_m 685.6  val_v_ms 3.708  val_m_kg 0.4278  val_d_deg 19.94  val_T_N 1.666  val_tgo_s 191.3  val_r_m_end 162.1  val_v_ms_end 3.981  val_tgo_s_end 77.45
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/localsmoke4-b932e481c2-af222541

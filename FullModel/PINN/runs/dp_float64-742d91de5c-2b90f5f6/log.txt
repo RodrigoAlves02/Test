@@ -1,0 +1,9 @@
+run_id dp_float64-742d91de5c-2b90f5f6   device cpu   out /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/dp_float64-742d91de5c-2b90f5f6
+parents 40  train 32 val 8 test 0
+pairs  train 158,400   val 39,600
+ansatz carries a nominal reference trajectory (C2 spline, mean training parent)
+structural check: r(0) == r0 [m]=0.00e+00  v(0) == v0 [m/s]=0.00e+00  m(0) == m0 [kg]=0.00e+00  d(0) == d0 [-]=2.22e-16  |d| == 1 [-]=2.22e-16  T in band [N]=-6.01e+00  m <= m0 [kg]=-1.96e-03  r(1) on plane [m]=0.00e+00  r(1) lateral [m]=0.00e+00  tgo(1) == 0 [s]=0.00e+00
+parameters 369,678
+[adam      0] loss 7.9130e+02  r  1221.99 m  v  5.9923 m/s  d  76.45 deg  T  6.561 N  tgo  201.13 s  [1s]
+[adam    199] loss 1.8226e+02  r   975.85 m  v  4.0126 m/s  d  19.31 deg  T  1.665 N  tgo  518.00 s  [100s]
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/dp_float64-742d91de5c-2b90f5f6

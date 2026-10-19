@@ -1,0 +1,132 @@
+FULL SIMULATION ARCHITECTURE
+MSc thesis - PINN-based closed-loop guidance for powered descent to 433 Eros
+Recorded 2026-09-15
+
+
+================================================================================
+0. PURPOSE
+================================================================================
+
+The end-to-end simulation that the whole thesis builds towards. It closes the
+loop around the PINN with a realistic navigation chain and realistic actuation
+limits, and is then exercised by Monte Carlo for sensitivity analysis and for
+robustness across different landing sites.
+
+Three blocks in a loop:
+
+    TRUTH DYNAMICS  ->  NAVIGATION  ->  GUIDANCE AND CONTROL  ->  TRUTH DYNAMICS
+                          (sensors                 (PINN,
+                           + EKF)                   saturation)
+
+The truth state also feeds the saturation block directly, so the slew limit is
+computed against what the vehicle is really doing rather than against what the
+filter believes.
+
+
+================================================================================
+1. NAVIGATION SYSTEM
+================================================================================
+
+1.1 SENSOR BLOCK
+----------------
+Receives the TRUE state from the truth dynamics block and returns perturbed
+measurements.
+
+  - Sensors: cameras and lidar. Other combinations to be studied.
+  - Each sensor has an ACTIVATION FUNCTION, on/off depending on position.
+    This is the way to get realistic sensor availability out of a 3DoF model:
+    without attitude there is no pointing to model, so availability is made a
+    function of where the spacecraft is instead.
+  - When a sensor is active its measurement is the true state plus its error
+    model; when it is inactive it contributes nothing for that period.
+  - Output: measurements at each sensor's own rate.
+
+Open: which sensor set, the activation geometry, and each sensor's error model
+and rate.
+
+1.2 EKF
+-------
+  - Updates at high frequency.
+  - Propagates continuously on IMU input; corrects with camera / lidar when
+    those are active at their own, lower rates.
+  - Uses PINN-GM-III as the gravity model inside its propagator. This is the
+    onboard model: cheap enough to run at filter rate.
+  - Output: the state estimate, which is the ONLY state the guidance sees.
+
+Note: the truth block uses a different, higher-fidelity gravity model. The gap
+between the two is deliberate and is part of what the Monte Carlo measures.
+
+
+================================================================================
+2. GUIDANCE AND CONTROL
+================================================================================
+
+2.1 PINN
+--------
+  - Input: the estimated state from the EKF.
+  - Output: commanded thrust magnitude and direction.
+  - This is the object of the thesis. Everything else in this document exists
+    to give it a realistic environment to be judged in.
+
+2.2 SATURATION BLOCK
+--------------------
+Sits between the PINN command and the truth dynamics. Two limits:
+
+  a) SLEW RATE SATURATION
+     Takes the TRUE state and checks the angle between the current thrust
+     direction and the PINN's commanded direction; clamps the rate of change of
+     direction to the slew limit. Using the true state here, not the estimate,
+     is deliberate - the actuator is limited by its real orientation.
+
+  b) THRUST RATE LAG
+     The commanded magnitude is not applied instantaneously. First-order lag,
+
+         T(t) = u_k + (T_0 - u_k) exp(-t/tau)
+
+     with a small tau, of order 0.005 s (placeholder, to be set). Equivalent to
+     carrying the applied thrust as a state with Tdot = (u - T)/tau.
+
+  - Output: the thrust actually applied, which goes to the truth dynamics.
+
+
+================================================================================
+3. TRUTH DYNAMICS
+================================================================================
+
+  - High-fidelity gravity model and high-accuracy propagator: the reference
+    against which everything else is measured.
+  - Input: the applied thrust from the saturation block.
+  - Output: the true state, which goes to
+      (i)  the sensor block, and
+      (ii) the saturation block, to compute the next slew limit.
+
+
+================================================================================
+4. MONTE CARLO
+================================================================================
+
+The full loop above is the unit that gets replicated:
+
+  - Sensitivity analysis: which error source actually drives the miss.
+  - Robustness analysis: different landing sites.
+
+
+
+
+
+================================================================================
+5. OPEN ITEMS FOR THE FULL MODEL
+================================================================================
+
+  - Sensor suite, activation geometry, error models and rates.
+  - IMU error model and rate.
+  - EKF tuning; process noise; how the PINN-GM-III gravity enters the
+    propagation and the covariance.
+  - tau for the thrust lag (0.005 s is a placeholder). Note the measured
+    open-loop sensitivity on the descent is miss = 10.6 * tau metres, so at
+    tau = 0.005 s the open-loop contribution is about 5 cm.
+  - Slew rate limit value and how it interacts with the PINN command.
+  - Monte Carlo sample count, seeds, and the list of landing sites.
+
+
+

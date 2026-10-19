@@ -1,0 +1,4 @@
+seed  3398 tight    converged   maxiter      it  203 fuel 6.54190 tf  2829.56 [1412s]
+seed  3398 mid      converged   maxiter      it  203 fuel 6.54190 tf  2829.56 [848s]
+seed  3398 default  converged   converged    it   93 fuel 6.61497 tf  2863.30 [446s]
+wrote Figures&data/tol_test/seed_3398.json

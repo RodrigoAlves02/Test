@@ -1,0 +1,118 @@
+PARKING ORBIT - TRUTH PROPAGATOR STEP SIZE
+FullModel / Truth Dynamics / Validation / parking orbit / parking_orbit_benchmark
+Scripts: run_benchmark.py, plot_benchmark.py     Output: Figures&data/
+Recorded 2026-09-16
+
+
+================================================================================
+1. WHAT WAS DONE
+================================================================================
+
+The truth propagator's step size is selected on a parking orbit by STEP HALVING.
+No reference trajectory is used: the arc is propagated at dt and again at dt/2,
+and the difference between the two is taken as the error estimate at dt. For a
+scheme of order p the finer run carries 2^-p of the coarser run's error, so their
+difference is (1 - 2^-p) of it, 94% for RK4. The ladder costs nothing extra
+because every propagation is the fine partner of the run above it and the coarse
+partner of the run below.
+
+SETUP
+  Trajectory   circular orbit, radius 35 km, randomly oriented, seed 20260916
+  Arc          1.5 revolutions; period 61560.0 s, so tf = 92339.9 s
+  Frame        INERTIAL (see Validation/Frame Validation for why)
+  Integrator   RK4, fixed step, 4 evaluations per step
+  Gravity      Werner-Scheeres POLYHEDRAL, Gaskell ver64q, 49 152 facets,
+               density set to reproduce GM = 4.4665e5 m^3/s^2
+  Perturbations  none. No SRP, no third body, no thrust.
+
+STEP SIZES TESTED
+  1024, 512, 256, 128, 64, 32, 16, 8, 4, 2 s, walked coarse to fine.
+
+  Every step is EXACTLY the size stated. The step is not rescaled to divide the
+  arc evenly - a requested 1024 s step that silently becomes 1014.7 s is not the
+  step that was asked for, and the halving ratio would then be 1.989 rather than
+  2, putting the convergence against a slightly wrong abscissa. tf is not a
+  multiple of these steps, so the propagator's termination condition trims only
+  the FINAL step, the one that would overshoot the end of the arc.
+
+
+================================================================================
+2. RESULTS
+================================================================================
+
+      dt [s]      |dr| [m]    |dv| [m/s]    order   evals    cpu [s]
+   1024             3.723e+00     4.450e-04    4.66      364     0.14
+    512             1.478e-01     1.839e-05    4.50      724     0.27
+    256             6.519e-03     8.467e-07    4.35     1444     0.53
+    128             3.186e-04     4.277e-08    4.23     2888     1.06
+     64             1.702e-05     2.346e-09    4.08     5772     2.12
+     32             1.004e-06     1.397e-10    4.91    11544     4.29
+     16             3.332e-08     6.224e-12    1.87    23088     8.84
+      8             9.119e-09     5.252e-13   -1.48    46172    18.70
+      4             2.535e-08     2.404e-12            92340    39.80
+
+  Fitted order 4.36 over dt = 32 to 1024 s (6 points). The per-rung orders fall
+  through 4.66, 4.50, 4.35, 4.23, 4.08 as the step shrinks - they approach 4 from
+  above because the coarsest rungs are not yet fully asymptotic, so the fitted
+  value sits a little high.
+
+  Round-off floor at about 9e-9 m. Below dt = 16 s the estimate goes non-monotone
+  (9.1e-9 then back up to 2.5e-8): the halving difference is subtracting two
+  nearly identical numbers, so the last two rungs measure noise and not accuracy.
+  Halving there doubles the cost and returns nothing.
+
+
+================================================================================
+3. SELECTION
+================================================================================
+
+  TOLERANCE      1e-5 m
+
+  SELECTED       dt = 32 s      error 1.004e-06 m
+                                11 544 gravity evaluations for 1.5 orbits
+                                4.29 s wall clock
+
+  32 s is the coarsest step on the ladder that meets the tolerance, and it meets
+  it with a factor of 10 to spare. The next step up, 64 s, gives 1.702e-05 m and
+  misses.
+
+WHY 1e-5 m
+  The tolerance is set far below the error the navigation filter will carry. The
+  OD error in the parking orbit has still to be studied and is expected to be of
+  order 10 m, so a numerical error of 1e-6 m is about seven orders of magnitude
+  below it. The propagator is therefore guaranteed not to contribute to the
+  dispersion that block 2 of the plan exists to establish - the cloud of points at
+  the start of the braking manoeuvre is navigation-limited by construction, not
+  numerics-limited.
+
+  Setting the tolerance this far down costs little: 32 s against 64 s is a factor
+  of two in evaluations, and the whole arc is 4.3 s of wall clock.
+
+
+================================================================================
+4. FIGURE
+================================================================================
+
+  Figures&data/parking_benchmark_rk4_35km.pdf / .png / .json
+
+  Position error against step size, with velocity error on its own right-hand
+  axis in its own units. The tolerance and the selected step are both marked, and
+  the grey band is where halving no longer buys anything.
+
+  No cost axis. This run exists only to produce the benchmark step that the later
+  integrator comparisons are measured against; what each of THOSE costs is the
+  question those figures answer, not this one. The evaluation counts are in the
+  table above and in the JSON if they are needed.
+
+
+================================================================================
+5. LIMITS
+================================================================================
+
+  - RK4 only. Other integrators, fixed and variable step, are compared separately.
+  - One orbit radius (35 km) and one orientation. Other altitudes are to be
+    covered when the parking orbit itself is selected.
+  - The step-halving estimate stops being meaningful below about 16 s on this arc.
+    Certifying accuracy finer than ~1e-8 m would need an independent reference,
+    for instance the Jacobi integral, which is exactly conserved on an unthrusted
+    arc in the rotating frame and therefore needs no reference trajectory at all.

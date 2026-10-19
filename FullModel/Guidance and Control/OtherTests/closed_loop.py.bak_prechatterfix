@@ -1,0 +1,243 @@
+#!/usr/bin/env python
+"""Closed loop: SCvx -> actuator -> truth dynamics, repeated until touchdown.
+
+    x (true)  ->  SCvx  ->  T_cmd  ->  actuator  ->  T_applied  ->  truth dynamics  ->  x
+                                       (lag + slew)
+
+Navigation is not in this loop yet, so guidance is fed the TRUE state. What is being tested is
+whether the guidance and the actuator can fly the vehicle to the ground at all once the commanded
+thrust is no longer delivered instantly or turned instantly -- the two limits the actuator imposes.
+
+THE ACTUATOR IS PART OF THE PLANT, NOT A POST-PROCESSING STEP. The applied thrust changes
+continuously across a guidance interval, so it is carried as a state and integrated with everything
+else:
+
+    y = [ r(3), v(3), m, T(3) ]     ten states, inertial frame
+
+    rdot = v
+    vdot = R(wt) g(R(-wt) r) + T/m
+    mdot = -|T| / (Isp g0)
+    Tdot = d/dt ( |T| d )  with |T| relaxing to |T_cmd| at rate 1/tau
+                            and d rotating toward d_cmd at at most slew_max
+
+Treating the actuator as a separate discrete update would hold the thrust constant across an
+interval it is demonstrably not constant over.
+
+Integrated with DOP853 at rtol 1e-12, one call per guidance interval, with the command held. The
+integrator is not told about the actuator's own kink at the moment the slew finishes; at this
+tolerance it simply shortens its step through it.
+
+Touchdown is a terminal event on altitude above the site plane, so the landing epoch is found by
+root-finding rather than by overshooting into the surface and interpolating afterwards.
+"""
+from __future__ import annotations
+
+import argparse
+import faulthandler
+import json
+import os
+import sys
+import time
+
+for _v in ("OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS", "TBB_NUM_THREADS"):
+    os.environ.setdefault(_v, "1")
+
+import numpy as np
+from scipy.integrate import solve_ivp
+
+HERE = os.path.dirname(os.path.abspath(__file__))
+GC = os.path.join(HERE, "..")
+SCVX = os.path.join(HERE, "..", "..", "..", "scvx_landing")
+sys.path.insert(0, GC)
+sys.path.insert(0, SCVX)
+
+import guidance as GD                                                # noqa: E402
+from actuator_model import Actuator, rotate_towards, _unit           # noqa: E402
+
+WZ = GD.WZ
+OMEGA = GD.OMEGA
+
+
+def rhs(t, y, T_cmd, g_body, act, alpha):
+    """Ten-state inertial dynamics with the actuator carried as a state."""
+    r_I, v_I, m, T = y[0:3], y[3:6], y[6], y[7:10]
+
+    c, s = np.cos(WZ * t), np.sin(WZ * t)
+    r_B = np.array([c * r_I[0] + s * r_I[1], -s * r_I[0] + c * r_I[1], r_I[2]])
+    gB = g_body(r_B)
+    a = np.array([c * gB[0] - s * gB[1], s * gB[0] + c * gB[1], gB[2]])
+
+    Tn = float(np.linalg.norm(T))
+    if Tn > 1e-12:
+        a = a + T / m
+    mdot = -alpha * Tn
+
+    # actuator: magnitude relaxes, direction slews
+    mag_cmd, d_cmd = act.clip_command(T_cmd)
+    d = T / Tn if Tn > 1e-12 else d_cmd
+    dmag = (mag_cmd - Tn) / act.tau
+    cosang = float(np.clip(d @ d_cmd, -1.0, 1.0))
+    ang = np.arccos(cosang)
+    if ang > 1e-9 and Tn > 1e-12:
+        axis = np.cross(d, d_cmd)
+        an = np.linalg.norm(axis)
+        w = (act.slew_max / an) * axis if an > 1e-12 else np.zeros(3)
+        ddot = np.cross(w, d)
+    else:
+        ddot = np.zeros(3)
+    Tdot = dmag * d + Tn * ddot
+    return np.concatenate([v_I, a, [mdot], Tdot])
+
+
+def main():
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--start-frac", type=float, default=0.75,
+                    help="start this far along the cached solution; 0 = handover, 0.75 = final "
+                         "quarter. A full descent is ~77 guidance cycles at ~22 s of SCvx each, "
+                         "which is an hour of wall clock to answer a question the last quarter "
+                         "answers just as well.")
+    ap.add_argument("--dt-guid", type=float, default=30.0, help="guidance cycle [s]")
+    ap.add_argument("--tau", type=float, default=0.5, help="thrust response constant [s]")
+    ap.add_argument("--slew", type=float, default=2.0, help="slew limit [deg/s]")
+    ap.add_argument("--rtol", type=float, default=1e-12)
+    ap.add_argument("--atol", type=float, default=1e-14)
+    ap.add_argument("--max-cycles", type=int, default=200)
+    # Cap the solver, not just the loop. The wall-clock budget is only checked BETWEEN cycles, so a
+    # single runaway solve escapes it entirely -- measured at one cycle burning 40+ minutes against
+    # 1.3-7.0 s for the ones before it, with the 120-iteration default. The tuned configuration
+    # needs 7-25 iterations on every problem in the selection battery, so a cycle that wants more
+    # than 40 has failed and should be reported as a failure rather than waited out.
+    ap.add_argument("--iters", type=int, default=40, help="max SCvx iterations per cycle")
+    ap.add_argument("--watchdog", type=float, default=0.0,
+                    help="dump a traceback every N seconds (diagnostic)")
+    ap.add_argument("--max-minutes", type=float, default=60.0)
+    ap.add_argument("--no-warm", dest="warm", action="store_false", default=True,
+                    help="disable receding-horizon warm starting")
+    ap.add_argument("--cold", action="store_true",
+                    help="do not seed the first cycle from the nominal")
+    ap.add_argument("--out", default=os.path.join(HERE, "Figures&data"))
+    a = ap.parse_args()
+    os.makedirs(a.out, exist_ok=True)
+    if a.watchdog > 0:
+        # Dump where the process actually is if a cycle overruns, instead of inferring it.
+        faulthandler.dump_traceback_later(a.watchdog, repeat=True, exit=False)
+
+    import tune
+    z = np.load(os.path.join(SCVX, "descent_nominal.npz"))
+    rf = np.asarray(z["rf"], float)
+    X_old, sig_old = z["X"], float(z["sigma"])
+    K_old = X_old.shape[1]
+    k0 = int(round(a.start_frac * (K_old - 1)))
+    x0 = X_old[:, k0].copy()                 # rotating frame, taken from the old solution
+    t_old = k0 / (K_old - 1) * sig_old
+    print(f"starting {a.start_frac:.0%} along the cached solution: node {k0}/{K_old-1}, "
+          f"t = {t_old:.1f} s of {sig_old:.1f} s, {sig_old - t_old:.1f} s of flight remaining")
+
+    # Seed from the remainder of the nominal, t_go included. The loop starts part-way along, so the
+    # useful guess is the tail of the cached solution from node k0 with the elapsed time removed --
+    # not the whole thing. Cold-started, the first cycle exhausts its iteration budget and the
+    # planned mission duration then wanders by ~380 s over six cycles (solver_fix/step22_persist).
+    nom = (X_old[:, k0:], np.asarray(z["U"], float)[:, k0:], sig_old - t_old)
+    gd = GD.SCvxGuidance(warm_start=a.warm, nominal=None if a.cold else nom,
+                         iters=a.iters)
+    ctx = gd.ctx
+    n_hat = np.asarray(ctx.n_hat, float)
+    g_body = ctx.truth.g
+    alpha = 1.0 / (tune.ISP * 9.80665)
+    act = Actuator(tau=a.tau, slew_max_deg_s=a.slew, t_min=tune.TMIN, t_max=tune.TMAX)
+
+    # expressed inertially at t = 0, where the two frames coincide
+    r_I = x0[0:3].copy()
+    v_I = x0[3:6] + np.cross(OMEGA, x0[0:3])
+    m = float(np.exp(x0[6]))
+    y = np.concatenate([r_I, v_I, [m], np.zeros(3)])       # engine starts off
+    t = 0.0
+
+    def altitude(t, y, *args):
+        # solve_ivp hands `args` to the events as well as to the right-hand side, so this has to
+        # accept them even though it uses none of them.
+        c, s = np.cos(WZ * t), np.sin(WZ * t)
+        r_B = np.array([c * y[0] + s * y[1], -s * y[0] + c * y[1], y[2]])
+        return float(n_hat @ (r_B - rf))
+    altitude.terminal = True
+    altitude.direction = -1
+
+    print(f"start: altitude {altitude(0.0, y)/1e3:.3f} km, |v| {np.linalg.norm(v_I):.4f} m/s, "
+          f"m {m:.2f} kg")
+    print(f"guidance cycle {a.dt_guid:g} s, tau {a.tau:g} s, slew {a.slew:g} deg/s, "
+          f"DOP853 rtol {a.rtol:.0e}\n")
+
+    T_t, T_cmd_mag, T_act_mag = [], [], []
+    ang_cmd, ang_act, ang_err = [], [], []
+    cyc = []
+    t_wall0 = time.perf_counter()
+    landed = False
+
+    for k in range(a.max_cycles):
+        if (time.perf_counter() - t_wall0) / 60.0 > a.max_minutes:
+            print(f"\nstopped: wall-clock budget of {a.max_minutes:g} min reached")
+            break
+        np.savez(os.path.join(a.out, "cycle_state.npz"), k=k, t=t, y=y)   # replayable: see cycle_probe
+        T_cmd, plan = gd.command(t, y[0:3], y[3:6], y[6])
+        if T_cmd is None:
+            print(f"cycle {k:3d}: GUIDANCE FAILED -> {plan.error}")
+            break
+        mag_cmd, d_cmd = act.clip_command(T_cmd)
+
+        s = solve_ivp(rhs, (t, t + a.dt_guid), y, method="DOP853", rtol=a.rtol, atol=a.atol,
+                      args=(T_cmd, g_body, act, alpha), events=altitude, dense_output=True,
+                      max_step=a.dt_guid / 4.0)
+        ts = np.linspace(t, s.t[-1], 60)
+        Ys = s.sol(ts)
+        for i, ti in enumerate(ts):
+            Tv = Ys[7:10, i]
+            Tn = float(np.linalg.norm(Tv))
+            T_t.append(ti); T_cmd_mag.append(mag_cmd); T_act_mag.append(Tn)
+            dv = Tv / Tn if Tn > 1e-12 else d_cmd
+            ang_cmd.append(np.degrees(np.arccos(np.clip(d_cmd @ n_hat, -1, 1))))
+            ang_act.append(np.degrees(np.arccos(np.clip(dv @ n_hat, -1, 1))))
+            ang_err.append(np.degrees(np.arccos(np.clip(dv @ d_cmd, -1, 1))))
+
+        y = s.y[:, -1]
+        t = s.t[-1]
+        alt = altitude(t, y)
+        spd = float(np.linalg.norm(y[3:6] - np.cross(OMEGA, y[0:3])))   # speed in the rotating frame
+        cyc.append(dict(k=k, t=t, alt=alt, speed=spd, mass=float(y[6]),
+                        T_cmd=float(mag_cmd), T_act=float(np.linalg.norm(y[7:10])),
+                        t_go=float(plan.sigma), solve_s=plan.solve_s))
+        print(f"           solver: {plan.iters} iters, {plan.reason}/{plan.exit_via}")
+        print(f"cycle {k:3d}: t {t:7.1f}s  alt {alt:9.2f} m  |v| {spd:7.4f} m/s  "
+              f"|T| cmd {mag_cmd:5.2f} act {np.linalg.norm(y[7:10]):5.2f} N  "
+              f"t_go {plan.sigma:7.1f}s  solve {plan.solve_s:5.1f}s")
+
+        if s.status == 1:
+            landed = True
+            print(f"\nTOUCHDOWN at t = {t:.2f} s")
+            break
+
+    c, sn = np.cos(WZ * t), np.sin(WZ * t)
+    r_B = np.array([c * y[0] + sn * y[1], -sn * y[0] + c * y[1], y[2]])
+    v_B = np.array([c * y[3] + sn * y[4], -sn * y[3] + c * y[4], y[5]]) - np.cross(OMEGA, r_B)
+    miss = float(np.linalg.norm(r_B - rf))
+    print(f"  landed        : {landed}")
+    print(f"  altitude      : {altitude(t, y):.4f} m")
+    print(f"  miss from site: {miss:.3f} m")
+    print(f"  touchdown speed: {np.linalg.norm(v_B):.4f} m/s")
+    print(f"  propellant     : {m - float(y[6]):.4f} kg")
+    print(f"  cycles {len(cyc)}, mean solve {gd.mean_solve_s:.1f} s, "
+          f"wall {(time.perf_counter()-t_wall0)/60:.1f} min")
+
+    os.makedirs(a.out, exist_ok=True)
+    f = os.path.join(a.out, "closed_loop.json")
+    json.dump(dict(dt_guid=a.dt_guid, tau=a.tau, slew=a.slew, rtol=a.rtol,
+                   landed=bool(landed), t_land=float(t), miss=miss,
+                   touchdown_speed=float(np.linalg.norm(v_B)),
+                   propellant=float(m - y[6]), cycles=cyc,
+                   trace=dict(t=T_t, T_cmd=T_cmd_mag, T_act=T_act_mag,
+                              ang_cmd=ang_cmd, ang_act=ang_act, ang_err=ang_err)),
+              open(f, "w"), indent=1)
+    print(f"\nwrote {f}")
+
+
+if __name__ == "__main__":
+    main()

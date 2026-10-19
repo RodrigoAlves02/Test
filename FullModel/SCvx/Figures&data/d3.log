@@ -1,0 +1,33 @@
+handover: altitude 11.771 km, |v| 8.6093 m/s, m 599.53 kg
+per-cycle rescaling: ON   plan gravity: pinn   nav gravity: pinn   truth gravity: poly 49k
+truth integrator: RK8 fixed, INERTIAL frame, dt 0.5 s
+K 40, guidance cycle 60 s, actuator sub-step 0.5 s, tau 1e-09 s, slew 1e+06 deg/s
+
+cycle-0 warm start: nominal descent.npz  K 60, tf 2037.7 s
+cyc   0 | t    60.0 alt  11521.26 |v|  8.2349 m 599.280 | S1  2it converged   D   0.0000 def 2.94e-01 | S2  8it converged   miss   0.0648 def 4.35e-03 | tgo  2060.0 T  9.32/ 9.32 | L  11771.0 T  594.0 s_nd  3.47   11.6s
+cyc   1 | t   120.0 alt  11274.53 |v|  7.9715 m 599.027 | S1 40it maxiter     D 105.4659 def 1.62e-03 | S2  3it converged   miss 105.5557 def 3.47e-03 | tgo  1926.8 T  9.31/ 9.31 | L  11558.9 T  588.5 s_nd  3.27   42.4s
+      S1 maxiter after 40 it -- blocking: obj   [obj 16.42x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']
+cyc   2 | t   180.0 alt  10927.33 |v|  7.8205 m 598.774 | S1 40it maxiter     D 316.9286 def 1.15e-03 | S2  3it converged   miss 317.0169 def 3.01e-03 | tgo  1817.3 T  9.31/ 9.31 | L  11312.7 T  582.1 s_nd  3.12   28.8s
+      S1 maxiter after 40 it -- blocking: obj   [obj 4.17x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']
+cyc   3 | t   240.0 alt  10545.43 |v|  7.7886 m 598.521 | S1 40it maxiter     D 525.4479 def 1.09e-03 | S2  3it converged   miss 525.5306 def 2.84e-03 | tgo  1712.4 T  9.30/ 9.30 | L  11030.2 T  574.7 s_nd  2.98   26.5s
+      S1 maxiter after 40 it -- blocking: obj   [obj 2.10x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']
+cyc   4 | t   300.0 alt  10141.28 |v|  7.8782 m 598.268 | S1 40it maxiter     D 751.8594 def 9.41e-04 | S2  3it converged   miss 751.9492 def 2.97e-03 | tgo  1611.4 T  9.30/ 9.30 | L  10709.6 T  566.1 s_nd  2.85   24.8s
+      S1 maxiter after 40 it -- blocking: obj   [obj 1.14x  defect 0.00x  defect_v 0.00x  vc 0.00x on 'r']
+
+==================================================================
+WHERE IT LANDS
+==================================================================
+  landed            : False
+  time of flight    : 300.00 s
+  miss from site    : 10349.3359 m   (on the surface; 1745.7424 m projected into the datum plane)
+  altitude          : 10141.27569 m
+  touchdown speed   : 7.8782 m/s   (vertical -7.0383, limit 0.3)
+  thrust angle      : 125.13 deg from the local vertical
+  propellant        : 1.2658 kg
+  cycles            : 5, mean solve 26.8 s
+  committed cycles  : 0
+  inaccurate solves : 0 of 182 subproblems (0.0%)
+  re-plan failures  : 0
+
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/SCvx/Figures&data/closed_loop_d3.json
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/SCvx/Figures&data/closed_loop_plans_d3.npz  (5 plans)

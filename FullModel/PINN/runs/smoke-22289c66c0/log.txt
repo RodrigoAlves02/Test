@@ -1,0 +1,10 @@
+run_id smoke-22289c66c0   device cpu   out /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/smoke-22289c66c0
+parents 10  train 8 val 1 test 1
+pairs  train 39,600   val 4,950
+structural check: r(0) == r0 [m]=0.00e+00  v(0) == v0 [m/s]=0.00e+00  m(0) == m0 [kg]=0.00e+00  d(0) == d0 [-]=1.19e-07  |d| == 1 [-]=1.19e-07  T in band [N]=-2.30e+00  m <= m0 [kg]=-3.63e-01  r(1) on plane [m]=7.26e-04  tgo(1) == 0 [s]=0.00e+00
+parameters 9,998
+[adam      0] loss 2.3963e+04  r   885.76 m  v  4.4837 m/s  d  76.33 deg  T  7.541 N  tgo  539.20 s  [0s]
+[adam    100] loss 4.4752e+04  r  2090.59 m  v  3.9504 m/s  d  30.14 deg  T  1.707 N  tgo  245.04 s  [1s]
+[adam    200] loss 4.8467e+02  r   806.72 m  v  4.1049 m/s  d  31.12 deg  T  1.707 N  tgo  275.68 s  [3s]
+[adam    299] loss 6.4611e+01  r   813.28 m  v  4.0581 m/s  d  31.32 deg  T  1.707 N  tgo  215.73 s  [4s]
+wrote /Users/rodrigoalves/Desktop/Thesis/FullModel/PINN/runs/smoke-22289c66c0

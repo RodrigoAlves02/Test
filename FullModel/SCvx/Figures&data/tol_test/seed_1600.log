@@ -1,0 +1,4 @@
+seed  1600 tight    converged   converged    it    7 fuel 5.94505 tf  2142.93 [399s]
+seed  1600 mid      converged   converged    it    7 fuel 5.94505 tf  2142.93 [381s]
+seed  1600 default  converged   converged    it    7 fuel 5.94402 tf  2121.90 [302s]
+wrote Figures&data/tol_test/seed_1600.json

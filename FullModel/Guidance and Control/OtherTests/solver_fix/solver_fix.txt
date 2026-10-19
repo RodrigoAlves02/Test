@@ -1,0 +1,464 @@
+SCvx SOLVER DIAGNOSIS AND FIX
+=============================
+2026-09-21.  All runs in FullModel/Guidance and Control/OtherTests/solver_fix/.
+Test problem: the nominal descent, descent_nominal.npz, x_init 11 771 m from the landing site,
+Mwet 599.5 kg, Mdry 490 kg, Tmax 20 N, Tmin 5 N, polyhedral gravity (ver64q, 49 152 facets).
+
+
+1. WHAT WAS WRONG
+-----------------
+Three separate defects, all in the trust-region machinery. Together they meant the solver did not
+return the solution to the problem it was given -- it returned a point that depended on the guess
+it was started from, and then certified that point as converged.
+
+The test that exposes it is invariance. Fix x_init, change nothing about the problem, and vary only
+the flight time the warm start is seeded with. An optimiser must return one answer:
+
+    seed t_go     returned t_go    fuel      label          (BEFORE)
+      1440.5 s        1521.5 s     9.2119    stalled
+      1620.6 s        1656.2 s     7.6263    stalled
+      1710.6 s        1728.0 s     7.0483    stalled
+      1800.7 s        1801.3 s     5.7853    converged
+      1890.7 s        1864.2 s     5.8079    stalled
+      1980.7 s        1917.6 s     5.7610    stalled
+      2160.8 s        2092.2 s     6.1162    stalled
+                      ^^^^^^^^ spread 266.6 s
+
+The returned answer is the seed plus a bounded drift (+81, +36, +17, +1, -27, -63, -69 s). It always
+moves toward the true optimum and always runs out of road before reaching it.
+
+
+DEFECT 1 -- the trust-region upper caps sat BELOW the radii the run starts from.
+
+  driver.py line 50:  ETA_MIN, ETA_MAX, ES_MIN, ES_MAX, EU_MIN, EU_MAX
+                          = 1e-3, 1e6, 1.0, 200.0, 1e-5, 0.05
+  shipped tune.py:    ETA_S0 = 500      against ES_MAX = 200
+                      ETA_U0 = 0.1      against EU_MAX = 0.05
+
+  The grow branch is  p["eta_s"] = min(p["eta_s"] * bex, ES_MAX).  With eta_s = 500 and a cap of
+  200 that expression returns 200. A SUCCESSFUL step therefore SHRANK the region by 2.5x. The time
+  and control regions could only ever decay, never recover, so rho >= r2t was silently a no-op.
+
+  Measured, warm-started from the exact solution: eta_s grew 0 times in 14 iterations.
+
+  Figures&data/solver_fix.png, right panel, is defect 2 rather than this one, but the two compound:
+  defect 1 removed the region's ability to recover, defect 2 removed its reason to.
+
+
+DEFECT 2 -- rho is a defect-contraction ratio, but its thresholds are calibrated as though it were
+            a classic model-quality ratio.
+
+  dL = Jsocp - J_ref is dominated by the exact-penalty term Wvc * ||d_ref||_1. Verified directly:
+  dL = 32.3123 against Wvc * sum|d_ref| = 32.3123 (ratio 1.0001).
+
+  The reason it matters is that this quantity does NOT shrink with the trust region. The subproblem
+  can always drive its virtual control to zero, because the trajectory correction needed to do so is
+  orders of magnitude smaller than eta. So dL is flat in eta over the entire useful range. Measured
+  on a cold solve, iterations 4 to 9, all rejected so the reference is frozen:
+
+      it    eta_s      eta       dL            rho
+       4   500.00  1000.00   27525.058     -37.852
+       5   250.00  1000.00   27525.058      -5.286
+       6   125.00   500.00   27525.058      -2.144
+       7    62.50   250.00   27525.058      -2.873
+       8    31.25   125.00   27525.058      -2.418
+       9    15.62    62.50   27525.058      -0.276
+
+  dL is identical to three decimal places while eta_s falls 32x and eta falls 16x. A trust-region
+  method requires the predicted decrease to vanish as the radius does; here it does not. What rho
+  actually measures is
+
+      rho  ~  1 - ||d_new||_1 / ||d_ref||_1
+
+  the fraction of the reference defect the nonlinear propagation removed. Against that meaning the
+  shipped thresholds read: grow only if the step cut the defect TENFOLD (r2t = 0.90), shrink unless
+  it cut it by a third (r1t = 0.36). The first essentially never fires, the second fires on roughly
+  every other accepted step. The region ratchets down.
+
+  And it ratchets down while the step is still binding. Every iteration rides the trust-region
+  boundary (tr_sigma_frac ~ 1.00), so t_go advances 100 + 100 + 50 + 50 + 25 + 25 + ... -- a
+  geometric series whose SUM IS FINITE and, from a seed a few hundred seconds out, shorter than the
+  distance left to travel. The run halts where the trust region ran out, not where the optimum is.
+
+
+DEFECT 3 -- that halt was then certified as convergence.
+
+  Once the region reaches its floors (ES_MIN = 1.0 s, EU_MIN = 1e-5) the six step-size convergence
+  criteria are satisfied trivially: the steps are small because the solver is not allowed to take
+  large ones, not because the iterate has stopped moving. Every row of the table above labelled
+  "converged" before the fix is this.
+
+
+  A WORD ON SCATTER. Repeated runs of the same configuration in different processes move by a few
+  tens of seconds in t_go and a few per mil in fuel -- a known property of this solver, recorded
+  separately and not resolved here. Every individual cell in the tables below therefore wobbles at
+  that level. The spreads being compared (363 s against 97 s, 3.36% against 0.13%) are one to two
+  orders of magnitude larger than the scatter, so the conclusions hold, but no single cell should be
+  read as exact.
+
+
+2. THE FIX
+----------
+driver.py (backup: driver.py.bak_presolverfix)
+
+  a) eta_max / es_max / eu_max are now read from cfg and clamped to be at least the radius the run
+     starts from, so a cap can never sit under its own initial value.
+
+  b) the grow branch uses those locals instead of the module constants.
+
+  c) a cfg flag `cap_clamp` (default True) selects the clamped caps; setting it False restores the
+     original behaviour exactly, so the defect stays reproducible instead of having to be taken on
+     trust. Diagnostic only -- never set it in flight.
+
+  d) a cfg flag `shrink_on_accept` was added to allow sizing the region by step quality alone
+     (shrink only on rejection). It was tested and left at the default True -- it made matters
+     worse on its own (sigma spread 170.9 s against 104.7 s), because without the threshold
+     recalibration below it simply buys more rejected steps.
+
+Configuration -- the substantive change. Against rho's real meaning:
+
+     r1t = 0.0     shrink only if the step made the defect WORSE
+     r2t = 0.5     grow if the step at least HALVED it
+     eta0   = 300 m       state trust region
+     eta_s0 = 400 s       time-dilation trust region
+     eta_u0 = 1e-3        control trust region
+
+  eta_s0 is the single most important number. At the shipped 0.5 s the sigma spread over the seed
+  ladder is 266.6 s; at 50 s it is 15-33 s regardless of the thresholds; at 400 s it is 4.3 s.
+  The shipped value of 500 s was never in effect -- defect 1 capped it at 200 on the first grow.
+
+  eta_u0 is the second. It has to be small enough that rho stays informative and large enough that
+  the control can still reach the bang-bang structure. 1e-5 scores well on a test that hands the
+  solver the optimal control already (it "wins" by freezing U) and collapses on any test that does
+  not; 1e-2 and above lose 3-4% of the fuel. 1e-3 is the interior optimum.
+
+
+3. WHAT IT BOUGHT
+-----------------
+Same seed ladder (Figures&data/solver_fix.png, left panel). `cap_clamp=False` restores the original
+caps exactly, so "before" here is the original solver and not the patched one wearing old constants:
+
+    seed t_go        BEFORE (original)           AFTER (patched + chosen)
+                  t_go      fuel             t_go      fuel
+      1440.5 s   2035.5 s   5.8515          1897.4 s   5.6614
+      1620.6 s   2047.6 s   5.8002          1881.2 s   5.6740
+      1710.6 s   2087.0 s   5.8674          1890.7 s   5.6681
+      1800.7 s   1801.2 s   5.7863          1800.3 s   5.7817
+      1890.7 s   2164.1 s   6.0881          1884.5 s   5.6970
+      1980.7 s   2147.7 s   5.9822          1888.0 s   5.6774
+      2160.8 s   2153.4 s   5.9401          1881.7 s   5.6759
+                 spread 362.9 s             six of seven within 16.2 s (1881.2-1897.4)
+
+Before, the answer is the seed: every run halts near where its trust region gave out, spanning
+362.9 s and 0.30 kg of fuel. After, six of the seven seeds agree to 16.2 s and 0.036 kg, and they
+agree on a BETTER trajectory than the one the nominal represents -- about 1887 s at 5.67 kg against
+1801 s at 5.79 kg, 2.2% less fuel.
+
+Separating the two fixes, on the same ladder (step24_truebefore.py):
+
+    driver      constants   t_go spread   fuel range       eta_s grew   converged
+    original    shipped        507.1 s    5.7847-6.5602        1          6/7
+    patched     shipped        362.0 s    5.7847-6.1055        3          7/7
+    patched     chosen          93.5 s    5.6592-5.7817       14          7/7
+
+The cap fix on its own is worth little: it restores the region's ABILITY to grow (1 growth event
+across seven runs becomes 3) but not its reason to, because r2t = 0.90 still demands a tenfold
+defect cut. Recalibrating the thresholds to what rho actually measures is what turns 3 growth
+events into 14 and collapses the spread.
+
+The seventh is worth stating plainly rather than averaging away: the seed placed exactly on the
+shipped nominal converges back to the shipped nominal, in 7 iterations. That point is a genuine
+local optimum and the solver is entitled to stay there; it is reached only from a seed that starts
+on it, and any other seed leaves it for the better one. It is also why section 5 warns against
+reading the nominal as optimal.
+
+On the earlier ladder run with eta_u0 = 1e-4 the same test gave a 4.3 s spread over five seeds at a
+mean of 8.2 iterations; 1e-3 was preferred on the truth-scored battery below, which the seed ladder
+alone cannot judge because it hands every run the optimal control already.
+
+Optimality, scored on TRUTH rather than on what the solver reports. The control each run returns is
+flown through DOP853 at rtol 1e-12, restarted at every ZOH node, and the fuel and terminal miss are
+read off that propagation -- a number the solver cannot game by leaving a defect behind. Nine
+problems: the nominal IC from four initialisations, two position dispersions, three mid-flight
+restarts at 25 / 50 / 75 % along.
+
+    config                                          worst gap   mean gap   worst flown miss
+    baseline (eta_s0 500, eta_u0 0.1, r 0.36/0.90)      3.36%      1.85%        9.6 mm
+    eta_s0 400, eta_u0 1e-3, r 0.0/0.30                 0.60%      0.21%        9.9 mm
+    eta_s0 400, eta_u0 1e-3, r 0.0/0.50   <-- chosen    0.13%      0.03%        3.2 mm
+    eta_s0 400, eta_u0 3e-3, r 0.0/0.30                 1.69%      0.39%       42.2 mm
+
+Reported fuel equals flown fuel to within 1e-4 kg on every run, so nothing in this table is bought
+with dynamic infeasibility.
+
+Warm-started from the exact solution: 14 iterations before, 3 after.
+
+Self-consistency. Re-solving warm-started from the solver's own previous answer, repeatedly -- a
+converged solver is a fixed point of that map. After the fix it is one: fuel moves less than
+0.001 kg and t_go less than 0.1 s between rounds, from the nominal and from a cold solve alike.
+Before the fix this test could not be passed, because the answer depended on the guess.
+
+
+4. HOW TO USE IT
+----------------
+Warm start everything from the nominal, t_go included. run_one takes the flight time from the guess
+when tf is free (driver.py, `sigma = float(sw)`), and the ballistic estimate it falls back on
+otherwise reads 1502.8 s against a true t_go of 1800.7 s -- 300 s short on the very problem the
+constants were tuned for. guidance.py now seeds the first cycle from descent_nominal.npz and scales
+its time-dilation region and tf tolerance against the warm t_go rather than the ballistic estimate.
+
+The dimensionless constants in guidance.py were recalibrated to match:
+
+    ETA0_ND    = 0.025487     300 m   / 11 771 m
+    ETA_S0_ND  = 0.222136     400 s   / 1800.7 s     (scaled by the warm t_go, not sigma0)
+    ETA_U0_ND  = 0.029975     1e-3    / 0.033361
+    RHO_SHRINK = 0.0
+    RHO_GROW   = 0.5
+
+persist_tr, which carried the trust region across guidance cycles, is now off by default. It was a
+workaround for the ratchet -- the region could only decay, so re-opening it each cycle cost
+iterations shrinking it back down. With the ratchet fixed at its cause, carrying a radius that one
+cycle collapsed into the next is actively harmful.
+
+Both defaults measured over six receding-horizon cycles, flying one 30 s control interval along the
+plan between them (step22_persist.py):
+
+    persist_tr   nominal seed   iterations per cycle      converged   t + t_go drift
+      False         yes         11, 26, 28, 19, 28, 18       6/6          65.1 s
+      False         no          60, 46, 43, 41, 42, 23       1/6         377.9 s
+      True          yes         11, 21, 49, 33,  2,  1       1/6          42.7 s
+      True          no          60, 23, 35, 32, 31, 26       0/6          25.7 s
+
+The persist_tr = True row shows the pathology directly: by cycle 5 the carried region has collapsed,
+the solve "finishes" in 2 and then 1 iteration, and those are false convergences of exactly the kind
+section 1 describes. Without the nominal seed the first cycle exhausts its 60-iteration budget and
+the planned mission duration wanders by 378 s over six cycles.
+
+
+5. WHAT IS STILL NOT FIXED
+--------------------------
+The cold start. No configuration tested reaches the warm basin from the straight-line guess:
+
+    cold, wide region      t_go 2060 s   flown fuel 6.006 kg
+    cold, tuned region     stalls        flown fuel 8.304 kg
+    two-stage, wide then tuned, stage 1 = 5/8/10/12/15/20 iterations
+                           t_go 1978-2006 s, 5.816-5.946 kg, i.e. +2.6% to +4.8%
+    warm from the nominal  t_go 1884 s   flown fuel 5.658 kg
+
+This is basin selection, not trust-region sizing: stage 1 commits to a t_go near 2000 s within its
+first four iterations and the refinement is local, so no amount of stage-2 effort recovers. The
+practical consequence is small -- a cold start is needed once, to produce a nominal -- but it means
+the nominal should not be taken as optimal merely because the solver converged to it. The shipped
+nominal (1800.7 s, 5.785 kg) is itself about 2.2% off the best trajectory found here (1884 s,
+5.658 kg), which the fixed solver reaches when warm-started from it.
+
+Solve time is 20 s per guidance cycle at K = 80 nodes. That is a separate question from correctness
+and has not been addressed here.
+
+
+6. THE CLOSED LOOP, AND TWO FAULTS THAT WERE NOT THE SOLVER
+-----------------------------------------------------------
+Re-running closed_loop.py --start-frac 0.75 with the fixed solver exposed cycles that ran for tens
+of minutes while their neighbours took seconds. Two of the three causes turned out to be outside the
+solver entirely, which is worth recording because the symptom pointed straight at it.
+
+  (a) INFEASIBLE SUBPROBLEM, TREATED AS A BAD STEP.  The driver responded to a subproblem it could
+      not solve by shrinking the trust region and trying again -- 120 times. Shrinking makes the
+      feasible set SMALLER; it cannot repair infeasibility. Fixed: if every solver reports
+      "infeasible", stop immediately with reason "infeasible".
+
+  (b) THE WARM t_go WAS OUTSIDE THE FLIGHT-TIME BOUNDS.  sigma is a hard bound in the subproblem and
+      driver.py took it from the warm start raw. At a real MPC state 1005 m from the site the bounds
+      were [313.8, 691.8] s, and guidance.py's fallback handed over the WHOLE nominal -- 1800.7 s --
+      whenever the previous cycle had failed. Iteration 0 was then infeasible, both solvers agreed,
+      and because the fallback fires exactly when the previous cycle failed, one bad cycle became a
+      death spiral. Measured at that state:
+
+          warm t_go 1800.7 s  (full nominal)   infeasible, 0 iterations
+          warm t_go  310.5 s  (nominal tail)   solves, 24 iterations
+          warm t_go  186.3 s  (0.6x)           infeasible  -- below tf_min = 313.8 s
+          warm t_go  565.7 s  (1.8x)           converged, 8 iterations
+
+      Two fixes: driver.py widens tf_min/tf_max to admit a warm t_go rather than rejecting it (the
+      ballistic bounds assume the vehicle starts at rest, so on a mid-flight restart they can exclude
+      the trajectory it is actually flying -- tf_min was 313.8 s against a nominal t_go of 310.5 s at
+      that range), and guidance.py seeds from the nominal TAIL, matched on remaining range.
+
+  (c) A CHATTERING RIGHT-HAND SIDE IN THE TEST ITSELF -- not the solver at all.  closed_loop.py
+      carried the actuator as an ODE state, which means writing the slew rate limiter as a
+      differential equation. A rate limiter is not a differential equation, it is a switch: turning
+      at the full slew rate until the error reaches zero and then stopping means the direction
+      overshoots and reverses, i.e. a sliding mode. DOP853 at rtol 1e-12 cannot resolve an infinitely
+      fast oscillation, so it drove the step toward machine precision. Measured, one 30 s arc:
+
+          cycle 0   0.3 s      824 gravity calls
+          cycle 1 225.3 s  518 639 gravity calls      <- same arc length, 630x the work
+
+      Softening the switch into a boundary layer helped but did not remove it, because
+      ang = arccos(d . d_cmd) is not Lipschitz where it matters. The real fix is structural: the
+      actuator is a zero-order-hold device and Actuator.step already advances it EXACTLY in closed
+      form, so hold the thrust over a 0.5 s sub-step, advance the actuator analytically at the
+      boundaries, and let the integrator see only the smooth translational dynamics.
+
+      This was found with faulthandler.dump_traceback_later, not by reasoning -- the traceback was
+      inside solve_ivp, never inside the solver. py-spy needs root on macOS; faulthandler does not.
+
+  Also added: a wall-clock budget (cfg "max_seconds", 20 s in guidance.py). An iteration count does
+  not bound time, because the cost of an iteration is not bounded. And the SCS fallback, which is
+  only reached when CLARABEL has already failed, now carries max_iters and time_limit_secs.
+
+
+7. INTEGRATOR FOR THE CLOSED LOOP: FIXED-STEP RK8
+-------------------------------------------------
+With the right-hand side smooth, the choice is about cost, not stability. On a single smooth 30 s arc
+with an identical control, referenced to DOP853 at rtol 1e-13 (step29_rk8.py):
+
+    method                calls    wall      pos err     vel err
+    DOP853 rtol 1e-12        62    0.02     4.55e-13    4.37e-14
+    DOP853 rtol 1e-10        50    0.02     9.17e-13    2.67e-14
+    RK8 dt 1.000 s          360    0.12     9.37e-13    5.89e-14
+    RK8 dt 0.500 s          720    0.25     4.90e-12    6.34e-14
+    RK8 dt 0.250 s         1440    0.50     2.91e-12    5.57e-14
+
+Every one of them is at round-off, so accuracy does not choose. On an isolated arc DOP853 is 6-30x
+cheaper. Inside the loop the ranking REVERSES, and the reason is the sub-stepping: the actuator is
+advanced every 0.5 s, so an adaptive integrator is restarted 60 times per guidance cycle and pays its
+startup and error control on every restart -- 2820 calls per cycle, about 47 per sub-arc. A
+fixed-step method has no restart cost, so one RK8 step per actuator sub-step costs 12.
+
+    DOP853 rtol 1e-12, restarted every 0.5 s     2820 calls/cycle
+    RK8 dt 0.25 s                                1440 calls/cycle
+    RK8 dt 0.50 s  (one step per sub-step)        720 calls/cycle
+
+RK8 at dt = dt_act = 0.5 s is the choice: 4x cheaper than the adaptive method, accurate to 5e-12 m,
+and its cost is fixed in advance rather than data-dependent, which is what a Monte Carlo needs. A
+fixed-step method has no event root-finder, so the touchdown crossing is bisected explicitly --
+without that it reports touchdown wherever the grid falls, measured at 0.43 m below the surface.
+
+A fourth fault, in the test rather than in any of the above: the actuator was initialised COLD --
+0 N pointing at the local vertical -- even though the run picks up an existing descent three quarters
+of the way down, where the engine is lit and already pointed. That injected a transient belonging to
+no trajectory: a 15 N thrust step and a 139 deg pointing error that the 2 deg/s rate limit needs
+~70 s to slew out, on an arc only ~430 s long, so the vehicle spent its first two guidance cycles
+recovering from an initial condition that was never real. Initialising from the nominal's own control
+at the handover node (5.00 N at 23.3 deg from local vertical, U[0:3] being an acceleration so scaled
+by the node mass) removes it:
+
+    actuator at t = 0        peak pointing error    propellant     miss
+    cold, 0 N at vertical         139.13 deg          1.818 kg    1.93 m
+    from the nominal node          16.57 deg          1.584 kg    2.79 m
+
+The remaining 16.57 deg is real: at t = 360 s the command steps 11 deg in one cycle and the slew
+limit genuinely binds for ~5.5 s. The 1 deg spikes at every other cycle boundary are the same effect
+in miniature. Propellant falls 13% once the spurious transient is gone, which is the measure of how
+much that initial condition was costing.
+
+Three landings, same initial state, 75% along the nominal:
+
+    integrator              cycles   touchdown    miss     speed    propellant
+    DOP853 rtol 1e-12         14      418.68 s   1.390 m  0.943 m/s   1.955 kg
+    RK8 dt 0.25 s             14      398.24 s   3.018 m  2.105 m/s   1.609 kg
+    RK8 dt 0.50 s             15      424.11 s   3.881 m  1.206 m/s   1.908 kg
+
+All three land. They differ by more than the integrators do -- the integrators agree to 1e-12 m on an
+identical control, so the spread is the solver's run-to-run scatter amplified through feedback: at
+cycle 10 one run commanded 18.54 N and another 5.00 N from a similar state. The closed loop is
+therefore sensitive to that scatter, and a single run is not a measurement. This is the same scatter
+recorded before this work and is NOT resolved by it.
+
+The terminal phase is the remaining weak spot: the last two or three cycles hit the 20 s budget or
+the iteration cap ("timeout/maxiter", "stalled/maxiter"), and touchdown speed lands between 0.9 and
+2.1 m/s depending on the run. A dedicated terminal-phase treatment is the obvious next step and has
+not been attempted here.
+
+
+8. WHY IT WAS LANDING AT 1.47 m/s
+----------------------------------
+The terminal speed constraint is VTOUCH = 0.30 m/s and the nominal meets it exactly. The closed loop
+was arriving at 1.47 m/s. The cause is structural, not a tuning error.
+
+MINIMUM FUEL MEANS NO MARGIN. With Tmax = 20 N on ~594 kg the net deceleration is 0.028 m/s^2, so
+stopping from 4.3 m/s needs ~330 m. The fuel-optimal solution brakes as late as physics allows, and
+the nominal's own margin is correspondingly thin:
+
+    nominal node 27   altitude 244.18 m   stopping distance 236.80 m   margin  7.4 m
+    nominal node 28   altitude  70.19 m   stopping distance  68.73 m   margin  1.5 m
+
+THE SWITCH FALLS INSIDE A GUIDANCE CYCLE. Minimum-fuel control is bang-bang. MPC conventionally
+applies u(tau = 0) and holds it for the whole cycle, so a switch in the interior of the cycle is
+deferred by up to one full cycle. At 4.4 m/s a 10 s cycle covers 44 m of altitude while the stopping
+distance falls only ~6 m, so the margin burns at ~3.5 m per second: the 11.5 m available at cycle 27
+survives about three seconds. Measured, with a 10 s cycle:
+
+    cycle 27   alt 356.02 m   |v| 4.396   T  5.00 N   needs 344.52 m   margin  +11.50 m
+    cycle 28   alt 314.81 m   |v| 4.357   T  5.00 N   needs 338.41 m   margin  -23.60 m
+    cycle 29   alt 274.65 m   |v| 4.163   T 15.02 N   needs 308.94 m   margin  -34.29 m
+
+The vehicle was still coasting at Tmin one full cycle AFTER the landing had become unrecoverable,
+and every cycle after that commanded full thrust and could not recover. The plans reporting t_go of
+25-93 s from those states were claiming landings Tmax cannot deliver -- path and terminal constraints
+are penalised rather than hard, so the subproblem buys the shortfall with slack instead of reporting
+infeasibility. That is worth remembering when reading any "converged" label near the surface.
+
+Touchdown speed scaled straight with the cycle length, which is the signature of a one-cycle delay:
+
+    guidance cycle    touchdown speed    miss      solves   wall
+       30 s               1.47 m/s      2.79 m       14     1.5 min
+       10 s               0.84 m/s      0.62 m       43     3.1 min
+        5 s               0.52 m/s      0.12 m       86     5.8 min
+
+THE FIX IS TO STOP DISCARDING THE PLAN. The plan already carries the switch at its own resolution --
+K = 80 nodes over a ~60 s terminal horizon is about 1 s -- and U is a zero-order hold on THAT grid,
+not on the guidance grid. Following it across the cycle instead of holding node 0 (plan_thrust in
+closed_loop.py; --hold-first restores the conventional behaviour) removes the cycle-length
+sensitivity entirely:
+
+    mode                cycle   touchdown    miss     solves   wall
+    hold u(tau=0)        30 s    1.47 m/s   2.79 m      14    1.5 min
+    hold u(tau=0)         5 s    0.52 m/s   0.12 m      86    5.8 min
+    follow the plan      30 s    0.53 m/s   0.54 m      15    1.4 min
+    follow the plan      10 s    0.51 m/s   0.31 m      43    3.1 min
+
+A 30 s cycle now performs like a 5 s one at a sixth of the solves.
+
+WHAT IS LEFT. Touchdown sits at ~0.51-0.54 m/s against VTOUCH = 0.30 and no longer improves with a
+shorter cycle, so the remaining gap is a floor from something else -- the candidates are the actuator
+lag and slew limit, which the optimiser does not model at all, and the terminal-phase solves still
+hitting the iteration cap or the wall-clock budget. Not chased here.
+
+
+9. FILES
+--------
+  harness.py             one solve, reported honestly; restores every module attribute it touches
+  step1_baseline.py      pre-fix behaviour, cold and warm
+  step2_caps.py          defect 1 in isolation
+  step3_sweep.py         trust-region scale sweep -- found warm tr x0.001 -> 3 iterations
+  step4_sweep.py         bex and rho-threshold sweeps (no useful effect on their own)
+  step5_tube.py          dispersion tube
+  step6_opt.py           combined search
+  step7_validate.py      patched driver, no monkeypatching
+  step8_adaptive.py      trust region scaled to the warm start's own mismatch (k=2 beats k=10)
+  step9_final.py         post-fix validation against the recorded baseline
+  step10_cold.py         per-iteration trace -- where defect 2 is visible
+  step11_shrink.py       shrink-on-accept vs shrink-on-quality
+  step12_invariance.py   the seed ladder: the test that exposes the whole problem
+  step13_rho.py          rho thresholds x time trust region
+  step14_refine.py       eta_s0 and r2t on the full ladder
+  step15_radii.py        interior-optimum check on all three radii
+  step16_battery.py      first battery (scoring flaw: scored per run, not per problem)
+  step17_select.py       corrected scoring, grouped by problem
+  step18_cold2.py        two-stage cold start (does not work -- see section 5)
+  step19_fixedpoint.py   self-consistency chains
+  step20_truth.py        flown-truth scoring, DOP853 rtol 1e-12
+  step21_guidance.py     end-to-end receding-horizon cycles through guidance.py
+  step22_persist.py      persist_tr A/B
+  step24_truebefore.py   original vs patched driver vs patched+chosen, via cap_clamp
+  plot_solver_fix.py     the figure; re-run with --refresh to re-measure rather than redraw
+  step25_late.py         late-trajectory restarts
+  step26_stall.py        replay of the exact stalling guidance solve
+  step27_infeas.py       is the stalled state infeasible, or badly guessed?
+  step28_prop.py         propagation cost per arc
+  step29_rk8.py          fixed-step RK8 vs adaptive DOP853 on an identical control
+  ../plot_closed_loop.py  command vs delivered thrust and pointing, from closed_loop.json
+  stall_state.npz        the captured closed-loop state the replays use
+  Figures&data/          solver_fix.{json,pdf,png}

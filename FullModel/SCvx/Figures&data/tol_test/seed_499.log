@@ -1,0 +1,4 @@
+seed   499 tight    converged   converged    it  117 fuel 5.30967 tf  2233.33 [1095s]
+seed   499 mid      converged   converged    it  117 fuel 5.30967 tf  2233.33 [667s]
+seed   499 default  converged   converged    it   37 fuel 5.43110 tf  2331.50 [320s]
+wrote Figures&data/tol_test/seed_499.json
