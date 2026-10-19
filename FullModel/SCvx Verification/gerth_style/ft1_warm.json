@@ -1,0 +1,11 @@
+{
+ "lcvx_mp": 388.2809161790715,
+ "warm_status": "converged",
+ "warm_it": 8,
+ "warm_mp": 388.26135019971,
+ "warm_zmin": -231.1356287297475,
+ "warm_t_under": 35.0,
+ "cold_mp": 388.28488281724026,
+ "cold_status": "converged",
+ "cold_zmin": -231.5753311593442
+}

@@ -1,0 +1,6 @@
+grid_gravity.npz
+fill_*.npz
+res/*.npz
+logs/
+progress.txt
+old/
