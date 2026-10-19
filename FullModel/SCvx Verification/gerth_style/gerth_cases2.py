@@ -28,11 +28,15 @@ Tl, Th = 4971.8, 13258.2
 C.TMIN, C.TMAX, C.MWET, C.MDRY = Tl, Th, m0, mdry
 C.ISP, C.G0 = Isp_eff, g0; C.ALPHA = 1.0 / (Isp_eff * g0)
 C.W_BODY = np.zeros(3); C.VTOUCH = 0.0
-C.GLIDESLOPE_DEG = 89.9; C.POINTING_DEG = 180.0; C.TERMINAL_POINT_DEG = 180.0; C.TERMINAL_POINT_NODES = 0
+C.GLIDESLOPE_DEG = (None if case == "A" else 89.9); C.POINTING_DEG = 180.0; C.TERMINAL_POINT_DEG = 180.0; C.TERMINAL_POINT_NODES = 0
 _tfb = C.tf_bounds
 C.tf_bounds = lambda v0n, rng, **kw: _tfb(v0n, rng, m_wet=m0, m_dry=mdry, t_max=Th, t_min=Tl, g_max=g, v_touch=0.0)
 import ptr, benchmark as B, subproblem as SP
-print("subproblem from", SP.__file__, flush=True)
+# ptr.run forwards gs_deg only when it is not None, so case A must also change the DEFAULT that
+# subproblem.build binds at import time. A first version of this script set only gs_deg=None and
+# therefore still ran with the 89.9 deg cone, which acts as a no-subsurface constraint.
+import inspect
+print("subproblem from", SP.__file__, "| default gs_deg", inspect.signature(SP.build).parameters["gs_deg"].default, flush=True)
 from dynamics import Dynamics
 r0 = np.array([2000.0, 0.0, 1500.0]); v0 = np.array([100.0, 0.0, -75.0]); rf = np.zeros(3); n = np.array([0.0, 0.0, 1.0])
 sc = C.Scales.build(r0, rf, m_wet=m0, t_max=Th)

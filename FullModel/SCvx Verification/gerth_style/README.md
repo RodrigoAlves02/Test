@@ -12,6 +12,7 @@ configuration is patched before import, the same way `../run_verification.py` do
 | `profile_iter.py` | §8.4 | time split of one PTR iteration: discretization, CVXPY build, CVXPY compile, solve, defect |
 | `gerth_cases2.py A/B/C` | FT-1, §7.2, §7.3 | follow-up: A removes the glide-slope rows (patched copy of `subproblem.py` in a temp dir; the repo file is untouched); B and C lower m_dry to 1305 kg to measure the true propellant requirement |
 | `lcvx_ft1.py` | — | independent single-SOCP lossless-convexification solve of the same cases (convex, so a global reference); `sweep` scans t_f for the pointing case |
+| `ft1_warm.py` | — | FT-1 without the cone, solved cold and warm-started from the convex solution: both reach the convex optimum |
 
 None of these needs the Eros shape model; all use constant or point-mass gravity.
 
@@ -36,8 +37,8 @@ None of these needs the Eros shape model; all use constant or point-mass gravity
 `gerth_cases*.py`, `lcvx_ft1.py` (Açıkmeşe & Ploen 2007 case 1, Δt = 1 s, propellant in kg)
 
     case                       tf    published                LCvx SOCP           this SCvx (10-state)
-    FT-1, no path constraints  72    A&P 387.9, Gerth 389.9   388.28 (35 s under) 392.28 converged, above ground -> local optimum, +1.03 %
-    FT-1 with r_z >= 0         72    -                        392.09              392.28
+    FT-1, no path constraints  72    A&P 387.9, Gerth 389.9   388.28 (35 s under) 388.285 converged (85 it, cold), 32 s under; 388.261 warm (8 it)
+    FT-1 with r_z >= 0         72    -                        392.09              392.28 (89.9 deg cone acts as r_z >= 0)
     glide slope 4 deg          81    Gerth 401.6              399.84              399.82 (maxiter) / 399.94 (m_dry 1305, converged)
     + pointing 35 deg          95    Gerth: tf 95 s           infeasible at m_dry 1505; 421.58 at 1305   400.000 at the dry mass / 420.22 at 1305
     pointing case, t_f sweep: minimum 408.5 kg near 86 s, so no flight time fits the 400 kg propellant load.
@@ -47,6 +48,11 @@ discretization 22 %, defect 13 %, solve 5 % of one iteration (1.8 s). An earlier
 while other solves shared the CPU put discretization at 77 %; that number was wrong.
 
 ## Notes
+
+* `ptr.run` forwards `gs_deg` only when it is not None, so removing the cone needs the DEFAULT changed
+  before `subproblem` is imported (`C.GLIDESLOPE_DEG = None` plus the patched copy). A first version of
+  `gerth_cases2.py A` missed this and reported 392.28 kg as a "local optimum"; it was the no-subsurface
+  optimum. Fixed, and rerun above.
 
 * `config.tf_bounds` divides by `t_min`, so T_min = 0 (Gerth's CVX-1) raises ZeroDivisionError.
   `vertical_drop.py` keeps the lower bound and caps the upper bound at 300 s.
