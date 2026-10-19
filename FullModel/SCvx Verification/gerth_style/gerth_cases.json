@@ -1,0 +1,41 @@
+[
+ {
+  "tf": 72.0,
+  "K": 73,
+  "gs": 89.9,
+  "pt": 180.0,
+  "status": "converged",
+  "it": 66,
+  "mp": 392.2767202706623,
+  "zmin": 3.122917966141375e-11,
+  "wall": 156.07105803489685,
+  "name": "FT-1 (A&P case 1, unconstrained)",
+  "ref": "A&P 387.9 kg / Gerth 389.9 kg; Gerth z_min < 0 (30 s subsurface)"
+ },
+ {
+  "tf": 81.0,
+  "K": 82,
+  "gs": 86.0,
+  "pt": 180.0,
+  "status": "maxiter",
+  "it": 300,
+  "mp": 399.8161726201563,
+  "zmin": 1.3259722634081877e-07,
+  "wall": 632.3597042560577,
+  "name": "Sec 7.2 glide slope 4 deg (=86 deg from vertical)",
+  "ref": "Gerth 401.6 kg at 81 s"
+ },
+ {
+  "tf": 95.0,
+  "K": 96,
+  "gs": 86.0,
+  "pt": 35.0,
+  "status": "maxiter",
+  "it": 300,
+  "mp": 400.000000000455,
+  "zmin": 1.2172431641933932e-10,
+  "wall": 797.9963941574097,
+  "name": "Sec 7.3 + thrust pointing 35 deg",
+  "ref": "Gerth tof 95 s (mass not tabulated)"
+ }
+]
