@@ -42,8 +42,9 @@ None of these needs the Eros shape model; all use constant or point-mass gravity
     + pointing 35 deg          95    Gerth: tf 95 s           infeasible at m_dry 1505; 421.58 at 1305   400.000 at the dry mass / 420.22 at 1305
     pointing case, t_f sweep: minimum 408.5 kg near 86 s, so no flight time fits the 400 kg propellant load.
 
-`profile_iter.py` (min-max benchmark, K = 60): discretization 77 %, CVXPY compile 14 %, build 3 %,
-defect 4 %, solve 2 % of one iteration.
+`profile_iter.py` (min-max benchmark, K = 60, idle machine): CVXPY compile 51 %, build 9 %,
+discretization 22 %, defect 13 %, solve 5 % of one iteration (1.8 s). An earlier measurement taken
+while other solves shared the CPU put discretization at 77 %; that number was wrong.
 
 ## Notes
 
