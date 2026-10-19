@@ -1,0 +1,10 @@
+{
+ "n": 600,
+ "us_per_call": 27.90172894795736,
+ "exact_fallbacks": 0,
+ "g_rel_err_max_below_1km": 0.0015580841580314165,
+ "g_rel_err_max_above_1km": 0.00042277188815768163,
+ "g_rel_err_median": 0.00014786969573126846,
+ "grad_rel_err_max": 0.10813773293350161,
+ "grad_rel_err_median": 0.0007984374495457647
+}

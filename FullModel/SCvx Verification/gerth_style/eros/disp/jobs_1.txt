@@ -1,0 +1,17 @@
+7 0 default
+10 0 ratio
+10 0 fixedR
+10 1 default
+10 1 noslew
+7 1 ratio
+10 1 R0.7
+7 2 default
+10 2 ratio
+10 2 fixedR
+10 3 default
+10 3 noslew
+7 3 ratio
+10 3 R0.7
+7 4 default
+10 4 ratio
+10 4 fixedR
