@@ -1,0 +1,75 @@
+A  solver
+seed form variant  stage1      it1 stage2      it2   fuel kg    tf s  rej wall min   |d| lo
+   0   10 default  converged    19 converged    44    5.5238  2056.4    0      2.3  0.99993
+   0   10 noslew   converged    19 converged    42    5.5225  2056.3    0      2.0  0.99990
+   0   10 ratio    stalled      62 stalled      31    6.3904  1583.0   46      3.3  0.99997
+   0   10 fixedR   converged    18 converged    70    5.5253  2055.1    0      3.2  0.99994
+   0   10 R0.7     converged    14 converged    94    5.5230  2051.3    0      4.0  0.99998
+   0    7 default  converged     5 converged    14    5.5247  2036.9    0      0.5      nan
+   0    7 ratio    converged    28 maxiter     200    8.8587  2173.2   26      5.5      nan
+   1   10 default  converged    18 converged    83    5.3699  1996.2    0      3.8  0.99996
+   1   10 noslew   converged    18 converged   122    5.3650  2002.7    0      4.7  0.99986
+   1   10 ratio    converged    35 stalled      40    6.3498  1970.2   44      2.8  0.99998
+   1   10 fixedR   converged    11 converged   122    5.3705  1995.9    0      4.9  0.99997
+   1   10 R0.7     converged    20 converged    43    5.3652  2007.4    0     27.0  0.99997
+   1    7 default  converged     5 converged    11    5.3650  2019.6    0      0.4      nan
+   1    7 ratio    converged    29 maxiter     200    8.2683  2301.9   25      5.3      nan
+   2   10 default  converged    14 converged    89    5.2259  1930.4    0      3.7  0.99996
+   2   10 noslew   converged    14 converged    62    5.2294  1933.8    0      2.5  0.99974
+   2   10 ratio    stalled      60 stalled      26    6.1622  1774.2   50      3.2  0.99998
+   2   10 fixedR   converged    11 converged    69    5.2257  1930.4    0      3.0  0.99995
+   2   10 R0.7     converged     7 converged    63    5.2264  1919.4    0      2.7  0.99996
+   2    7 default  converged     5 converged    12    5.2308  1939.8    0      0.4      nan
+   2    7 ratio    converged    26 stalled     117   10.8789  1811.6   37      3.2      nan
+   3   10 default  converged    26 converged    46    6.0268  1902.2    0      5.2  0.99992
+   3   10 noslew   converged    26 converged    59    6.0239  1894.9    0      5.3  0.99980
+   3   10 ratio    stalled      67 stalled      33    5.9158  1547.4   49      5.1  0.99996
+   3   10 fixedR   converged    23 converged    57    6.0260  1905.6    0      5.9  0.99994
+   3   10 R0.7     converged    13 converged    54    6.0135  1888.1    0      7.4  0.99995
+   3    7 default  converged     5 converged    18    6.0062  1882.8    0      0.5      nan
+   3    7 ratio    converged    23 maxiter     200   10.4342  1943.0   28      5.5      nan
+   4   10 default  converged    16 converged    29    5.1773  1831.7    0      1.7  0.99996
+   4   10 noslew   converged    16 converged    19    5.1802  1829.0    0      1.2  0.99974
+   4   10 ratio    stalled      53 stalled      31    6.4483  1215.0   40      3.0  0.99997
+   4   10 fixedR   converged    16 converged    25    5.1768  1831.0    0      1.5  0.99997
+   4   10 R0.7     converged    12 converged    71    5.1822  1836.4    0      3.2  0.99997
+   4    7 default  converged     4 converged     9    5.1701  1837.3    0      0.3      nan
+   4    7 ratio    converged    26 stalled     155    9.9463  1946.3   36      4.0      nan
+
+B  returned vs judged control (stage 2)
+seed form variant  | r def mm    v def    d def rate miss rate alt att miss  att alt | r def mm    v def    d def rate miss rate alt att miss  att alt
+   0   10 default  |    3.932      nan  4.4e-03    23.615   -4.336    0.412   -0.402 |    0.080  7.6e-06  3.1e-05     0.071   -0.222    0.094    0.002
+   0   10 noslew   |    3.449      nan  3.9e-03    20.527   -5.517    0.422   -0.255 |    0.126  1.1e-05  7.1e-05     0.083   -0.322    0.080    0.007
+   0   10 ratio    |    0.114      nan  1.3e-05  4404.374    0.016 4404.052    0.006 |    0.114  2.5e-07  1.5e-07  4404.045    0.016 4404.048    0.005
+   0   10 fixedR   |    3.731      nan  4.2e-03    25.889   -4.926    0.436   -0.530 |    0.049  5.7e-06  4.8e-05     0.124   -0.173    0.094   -0.001
+   0   10 R0.7     |    0.508      nan  6.0e-04     2.577   -0.414    0.127   -0.072 |    0.048  5.3e-06  1.2e-05     0.098   -0.019    0.094   -0.001
+   0    7 default  |    0.005      nan      nan     0.002   -0.002      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   0    7 ratio    |    0.174      nan      nan     0.018    0.013      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   1   10 default  |    0.301      nan  2.9e-04     2.424    1.214    0.039   -0.001 |    0.128  1.2e-05  3.1e-05     0.070   -0.070    0.087   -0.001
+   1   10 noslew   |    0.882      nan  2.7e-04     0.326    0.061    0.036   -0.002 |    0.319  3.3e-05  7.4e-05     0.043    0.002    0.041   -0.004
+   1   10 ratio    |    0.037      nan  1.5e-05     0.301   -0.055    0.072   -0.000 |    0.034  3.5e-07  3.1e-07     0.074    0.005    0.067   -0.002
+   1   10 fixedR   |    0.786      nan  9.6e-04     2.060    1.197    0.054   -0.030 |    0.080  7.4e-06  2.3e-05     0.082   -0.046    0.091   -0.003
+   1   10 R0.7     |    1.973      nan  2.3e-03    11.166    1.500    0.214   -0.026 |    0.104  7.8e-06  1.2e-05     0.090   -0.114    0.096    0.002
+   1    7 default  |    0.008      nan      nan     0.008   -0.002      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   1    7 ratio    |    0.120      nan      nan     0.011    0.009      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   2   10 default  |    0.394      nan  5.3e-04     6.127    0.720    0.165   -0.049 |    0.062  7.1e-06  2.0e-05     0.077   -0.101    0.087    0.002
+   2   10 noslew   |    1.321      nan  1.7e-03    13.074    2.368    0.234   -0.108 |    0.527  4.4e-05  8.5e-05     0.191   -0.816    0.045    0.017
+   2   10 ratio    |    0.086      nan  2.2e-06   204.983    0.067  204.958   -0.001 |    0.086  9.1e-07  2.9e-07   204.949    0.009  204.957   -0.001
+   2   10 fixedR   |    0.446      nan  6.1e-04     8.266    1.097    0.190   -0.042 |    0.082  9.4e-06  2.6e-05     0.067   -0.145    0.084    0.002
+   2   10 R0.7     |    1.855      nan  2.4e-03    11.528    3.723    0.074   -0.217 |    0.041  4.2e-06  1.8e-05     0.154   -0.243    0.096    0.001
+   2    7 default  |    0.010      nan      nan     0.005   -0.002      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   2    7 ratio    |    0.039      nan      nan     0.060    0.004      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   3   10 default  |    3.932      nan  5.1e-03    42.593   24.139    0.512    0.134 |    0.146  8.0e-06  4.6e-05     0.249   -0.279    0.025    0.004
+   3   10 noslew   |   16.922      nan  2.0e-02    81.916    7.383    1.183    1.188 |    0.654  3.4e-05  1.3e-04     0.212   -0.858    0.061   -0.007
+   3   10 ratio    |    7.460      nan  6.1e-06  3947.999   -0.038 3948.038   -0.017 |    7.460  1.3e-06  1.1e-07  3948.036   -0.008 3948.038   -0.016
+   3   10 fixedR   |    4.405      nan  5.6e-03    40.641    6.259    0.611    0.301 |    0.041  3.6e-06  3.6e-05     0.061   -0.196    0.100    0.005
+   3   10 R0.7     |    1.610      nan  2.1e-03    15.617   20.657    0.242    0.486 |    0.068  5.4e-06  4.1e-05     0.125   -0.144    0.104    0.004
+   3    7 default  |    0.004      nan      nan     0.023   -0.002      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   3    7 ratio    |    0.097      nan      nan     0.078    0.006      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   4   10 default  |    0.107      nan  1.9e-04     0.977   -0.430    0.094   -0.018 |    0.099  8.1e-06  2.4e-05     0.122   -0.028    0.094    0.007
+   4   10 noslew   |    0.992      nan  5.1e-04     3.033   -1.149    0.072   -0.009 |    0.950  8.0e-05  2.3e-04     0.170   -0.038    0.068    0.065
+   4   10 ratio    |    0.093      nan  6.0e-06   652.282    0.002  652.213   -0.002 |    0.093  3.8e-07  1.9e-07   652.212    0.012  652.212   -0.002
+   4   10 fixedR   |    0.125      nan  1.2e-04     0.557   -0.194    0.093   -0.003 |    0.116  9.5e-06  2.2e-05     0.110   -0.025    0.094    0.007
+   4   10 R0.7     |    0.278      nan  4.0e-04     0.996   -0.427    0.086   -0.027 |    0.057  7.2e-06  2.5e-05     0.108   -0.003    0.092    0.001
+   4    7 default  |    0.005      nan      nan     0.004   -0.002      nan      nan |      nan      nan      nan       nan      nan      nan      nan
+   4    7 ratio    |    0.041      nan      nan     0.028    0.001      nan      nan |      nan      nan      nan       nan      nan      nan      nan

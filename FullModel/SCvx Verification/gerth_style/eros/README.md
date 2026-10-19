@@ -96,6 +96,81 @@ changing the iteration: keep `U_out = Un` before the gauge and return it.
 * Stage 1 from a cold start spends about 9 iterations with virtual control above tolerance
   (vc/tol 6.5e5 -> 1.5e-4) before the defect-driven phase.
 
-### Dispersed handovers: trust-region variants and 7 vs 10 states (`disp/res/*.json`)
+### Dispersed handovers: trust-region variants and 7 vs 10 states (`disp/res/*.json`, `results/disp_summary.txt`)
 
-Running. Summary table: `python disp/summarize.py`.
+Five handovers (seed 0 = nominal; seeds 1-4 dispersed by 1 km, 1 m/s, 2 kg, as `pinn_case.py` draws
+them), grid field, dataset settings (tol_obj 1e-7, defect 1 mm / 1e-4 m/s, 200 iterations, pointing
+cone off, terminal 1 deg, align corridor 45 deg / 100 m for 10-state), d(0) free, two-stage, K = 60.
+
+    stage 2, propellant [kg] (iterations)       seed 0          1               2               3               4
+    10-state default                            5.5238 (44)     5.3699 (83)     5.2259 (89)     6.0268 (46)     5.1773 (29)
+    10-state fixed R 0.35                       5.5253 (70)     5.3705 (122)    5.2257 (69)     6.0260 (57)     5.1768 (25)
+    10-state fixed R 0.7                        5.5230 (94)     5.3652 (43)     5.2264 (63)     6.0135 (54)     5.1822 (71)
+    10-state ratio test                         stalled in all five; 4 of 5 already stall in stage 1; 26-46 rejections
+    10-state, slew limit off                    5.5225 (42)     5.3650 (122)    5.2294 (62)     6.0239 (59)     5.1802 (19)
+    7-state default                             5.5247 (14)     5.3650 (11)     5.2308 (12)     6.0062 (18)     5.1701 (9)
+    7-state ratio test                          maxiter/stalled in all five, 8.27-10.88 kg (LCvx gap up to 88 %: not physical)
+
+Reading:
+
+* Keep the repo default loop. Fixed radii converge too and land within 0.02 % (R 0.35) or -0.22 % to
+  +0.09 % (R 0.7), with no consistent iteration gain: R 0.7 was faster on two handovers and slower on
+  three. The 0.7 suggestion from the TFC benchmarks does not carry over.
+* The ratio test fails on Eros for BOTH formulations, although it was the fastest option on the 7-state
+  TFC benchmarks (5-6 iterations). Tune on the target problem, not on benchmarks.
+* OPT-3, same optimum: 10-state without slew vs 7-state differ by 0.00-0.29 % (sign varies). Slew limit
+  on vs off: -0.07 % to +0.09 %. Two "slew off" runs end slightly ABOVE "slew on", which a global
+  optimum forbids, so ~0.1 % is the local-optimum / tolerance floor and the 2 deg/s limit is free here.
+* Cost: the 7-state converges in 9-18 stage-2 iterations (0.3-0.5 min), the 10-state in 29-89
+  (1.7-5.2 min). Handover 3 (all variants) and 1 (R 0.7) sent some calls outside the grid box to the
+  exact field, so their wall times are not comparable.
+
+Returned vs judged control, 10-state (table B in `disp_summary.txt`): the control the convergence test
+judged has direction defects 1e-5 to 2e-4 rad and r defects 0.04-0.95 mm, and flown with attitude
+commands lands 0.03-0.10 m from the site in all 20 converged runs. The returned (re-gauged) control
+has direction defects up to 2e-2 rad and stored r defects up to 16.9 mm (9 of 20 above the 1 mm
+tolerance), and flies 0.04-1.18 m (attitude) or up to 82 m (rate command).
+
+### 7-state: can a slew-limited engine fly the plan? (`disp/disp7_slew.py`, `disp/fly7.py`, `disp/res7/`)
+
+The 7-state direction is ZOH: constant over a hold, so the pointing cone at the node covers the hold
+exactly, but it STEPS at every node and nothing bounds the step. Measured on the plans above:
+largest step 28.7 deg on the nominal (the turn to vertical into the last hold), 101.7 deg on handover 3
+(124 -> 149 -> 63 deg from vertical on the 5 N floor, a 51 s turn in a 32 s hold).
+
+`disp7_slew.py` adds two affine rows of the pointing-row form to a patched copy of the 7-state
+subproblem: a slew budget between holds, ah_ref[k].a[k+1] >= cos(w beta h) G[k+1] (and the mirror),
+and a reachable first hold about the engine direction, both with an L1-priced slack. beta = 0.25,
+w = 2 deg/s, i.e. each turn fits in a quarter of a hold.
+
+    handover                          0           1           2           3           4
+    propellant, baseline [kg]         5.5247      5.3650      5.2308      6.0062      5.1701
+    propellant, slew rows [kg]        5.5295      5.3811      5.2390      6.0957      5.1798
+                                      +0.09 %     +0.30 %     +0.16 %     +1.49 %     +0.19 %
+    stage-2 iterations                14 -> 200   11 -> 56    12 -> 37    18 -> 82    9 -> 22
+
+`fly7.py` flies each plan open loop with the engine delivering the charged Gamma along a/|a|,
+starting at the handover attitude: ideal (instant turns), lag (2 deg/s geodesic tracker, turn starts at
+the node) and lead (the same tracker, turn centred on the node). Lateral miss / altitude:
+
+    plan                ideal              lag                  lead
+    baseline 0          7.9 / +6.3         45.4 / -17.0         8.2 / +8.5
+    baseline 1          4.8 / +2.2         68.3 / -10.7         33.6 / +50.5
+    baseline 2          17.2 / +6.9        107.6 / -23.6        56.6 / +67.4
+    baseline 3          0.9 / -0.3         279.6 / -510.2       64.5 / -385.9
+    baseline 4          3.4 / +3.2         18.1 / -62.9         11.2 / -52.8
+    slew rows 0         0.7 / +1.3         39.4 / -22.9         1.6 / +3.4
+    slew rows 1         13.7 / +1.8        61.6 / -29.4         24.4 / +23.2
+    slew rows 2         0.5 / -0.1         57.6 / -35.1         10.8 / +22.2
+    slew rows 3         0.1 / -0.0         51.7 / -122.8        17.6 / -69.6
+    slew rows 4         1.4 / +1.6         17.2 / -64.7         11.9 / -54.5
+
+* The "ideal" column is not the solver's 2 mm: the 7-state relaxation is slack by 0.2-0.5 % (10-23 mN,
+  58-59 of 59 holds, mostly on the 5 N floor), so an engine that delivers the Gamma it burns flies
+  0.01-0.016 m/s of delta-v the plan did not count. `verify.fly` flies a, not Gamma a/|a|, and does
+  not see it.
+* Without a slew budget the plans are not flyable by a 2 deg/s engine (up to 280 m and a 0.83 m/s
+  impact). Bounded steps plus centred turns bring it to 1.6-24 m laterally, but up to 70 m in altitude:
+  open-loop error the re-planning has to absorb every cycle.
+* The 10-state plan contains the rotation at <= 2 deg/s; its judged control flown with attitude
+  commands lands 0.03-0.10 m from the site on the same handovers (tracker lag tau ignored in both).
